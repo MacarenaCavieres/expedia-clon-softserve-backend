@@ -15,6 +15,7 @@ import jakarta.persistence.Table
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
+import java.util.UUID
 
 @Entity
 @Table(name = "bookings")
@@ -22,16 +23,18 @@ data class Booking(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 
-    // Una reserva siempre está ligada a un itinerario.
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "itinerary_id", nullable = false)
-    val itinerary: Itinerary,
+    // Este campo ahora identifica la sesión del usuario no registrado.
+    @Column(nullable = false)
+    val sessionId: UUID,
+
+    // El número de pasajeros ahora pertenece directamente a la reserva.
+    @Column(nullable = false)
+    val passengerCount: Int,
 
     // Una reserva puede ser de un tipo de habitación.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_type_id")
     val roomType: RoomType? = null,
-
 
     @Column(nullable = false)
     val checkInDate: LocalDate,

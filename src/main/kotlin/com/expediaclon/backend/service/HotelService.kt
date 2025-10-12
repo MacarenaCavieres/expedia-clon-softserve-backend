@@ -25,7 +25,7 @@ class HotelService(
     fun getHotelDetails(hotelId: Long): HotelDetailDto {
         // Buscamos el hotel o lanzamos una excepción si no existe.
         val hotel = hotelRepository.findById(hotelId)
-            .orElseThrow { IllegalArgumentException("Hotel con ID $hotelId no encontrado.") }
+            .orElseThrow { IllegalArgumentException("Hotel with ID: $hotelId not found.") }
 
         // Buscamos todos los tipos de habitación para ese hotel.
         val roomTypes = roomTypeRepository.findByHotelId(hotelId)

@@ -25,30 +25,34 @@ class BookingService(
     @Transactional
     fun createBooking(request: BookingRequest): Booking {
         // [INFO] Se registra el inicio del proceso. Este mensaje siempre aparecerá.
-        logger.info("Iniciando creación de reserva para la sesión: ${request.sessionId}")
+        logger.info("Starting reservation creation for the session: ${request.sessionId}")
 
         // [DEBUG] Se registran detalles internos que solo son útiles para depurar.
-        logger.debug("Buscando RoomType con ID: ${request.roomTypeId}")
+        logger.debug("Searching RoomType with ID: ${request.roomTypeId}")
 
         val roomType = roomTypeRepository.findById(request.roomTypeId)
             .orElseThrow {
                 // [ERROR] Se registra un fallo crítico si no se encuentra la habitación.
-                logger.error("No se encontró el RoomType con ID: ${request.roomTypeId}")
-                IllegalArgumentException("No se encontró el tipo de habitación.")
+                logger.error("The RoomType with the given ID wasn't found: ${request.roomTypeId}")
+                IllegalArgumentException("The room type wasn't found.")
             }
-        logger.debug("RoomType encontrado: ${roomType.name} en el hotel ${roomType.hotel.name}")
+
+        // Room availability validation
+
+
+        logger.debug("RoomType found: ${roomType.name} in the hotel ${roomType.hotel.name}")
 
         val numberOfNights = ChronoUnit.DAYS.between(request.checkInDate, request.checkOutDate)
 
         if (numberOfNights <= 0) {
-            throw IllegalArgumentException("La fecha de salida debe ser posterior a la fecha de entrada.")
+            throw IllegalArgumentException("The check-out date must be after the check-in date.")
         }
 
         val totalPrice = roomType.pricePerNight.multiply(BigDecimal.valueOf(numberOfNights))
 
         val confirmationCode = generateConfirmationCode()
 
-        logger.debug("Noches calculadas: $numberOfNights, Precio Total: $totalPrice")
+        logger.debug("Amount of nights: $numberOfNights, Total Price: $totalPrice")
 
         val newBooking = Booking(
             sessionId = request.sessionId,
@@ -63,7 +67,7 @@ class BookingService(
 
         val savedBooking = bookingRepository.save(newBooking)
         // [INFO] Se registra la finalización exitosa del proceso.
-        logger.info("Reserva creada con éxito. Código de confirmación: ${savedBooking.confirmationCode}")
+        logger.info("Reservation successfully created. Confirmation code: ${savedBooking.confirmationCode}")
 
         return savedBooking
     }
@@ -75,34 +79,34 @@ class BookingService(
     // Obtiene todas las reservas (sin autenticación por ahora).
     @Transactional(readOnly = true)
     fun getAllBookings(): List<BookingDetailDto> {
-        logger.info("Obteniendo todas las reservas")
+        logger.info("Looking for all reservations")
         return bookingRepository.findAll().map { it.toDetailDto() }
     }
 
     // Obtiene los detalles de una reserva específica por su ID.
     @Transactional(readOnly = true)
     fun getBookingDetails(bookingId: Long): BookingDetailDto {
-        logger.info("Obteniendo detalles para la reserva con ID: $bookingId")
+        logger.info("Obtaining details for reservation with ID: $bookingId")
         val booking = bookingRepository.findById(bookingId)
-            .orElseThrow { IllegalArgumentException("Reserva con ID $bookingId no encontrada.") }
+            .orElseThrow { IllegalArgumentException("Reservation with ID: $bookingId not found.") }
         return booking.toDetailDto()
     }
 
     // Cambia el estado de una reserva a CANCELLED.
     @Transactional
     fun cancelBooking(bookingId: Long): BookingDetailDto {
-        logger.info("Iniciando cancelación para la reserva con ID: $bookingId")
+        logger.info("Canceling reservation with ID: $bookingId")
         val booking = bookingRepository.findById(bookingId)
-            .orElseThrow { IllegalArgumentException("Reserva con ID $bookingId no encontrada.") }
+            .orElseThrow { IllegalArgumentException("Reservation with ID: $bookingId not found.") }
 
         // Lógica de negocio para la cancelación.
         if (booking.status == BookingStatus.CANCELLED) {
-            throw IllegalStateException("La reserva ya ha sido cancelada.")
+            throw IllegalStateException("The reservation has been canceled.")
         }
 
         booking.status = BookingStatus.CANCELLED
         val updatedBooking = bookingRepository.save(booking)
-        logger.info("Reserva con ID $bookingId cancelada con éxito.")
+        logger.info("The reservation with ID: $bookingId has been successfully cancelled.")
 
         return updatedBooking.toDetailDto()
     }

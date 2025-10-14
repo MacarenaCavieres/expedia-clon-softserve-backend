@@ -54,7 +54,7 @@ class DataLoader(
                 comment = "Exceptional",
                 latitude = 48.8437,
                 longitude = 2.3276,
-                description = "Located in the heart of the Montparnasse district, this hotel offers a blend of classic Parisian charm and modern amenities. Excellent service and close proximity to attractions.",
+                description = "Luxembourg Gardens are just a stroll away from this charming Parisian stay. Relax in the sauna, enjoy buffet breakfast, or rent bikes to explore. With an airport shuttle and babysitting services on site, you can unwind with ease.",
                 destination = paris,
                 address = "9 Rue Littré, 75006 Paris, Francia",
                 images = mutableListOf(
@@ -101,7 +101,7 @@ class DataLoader(
                 comment = "Very Good",
                 latitude = 48.8656,
                 longitude = 2.3364,
-                description = "A classic Parisian retreat with opulent decor and views of the Tuileries Garden.",
+                description = "Elegant and cozy, this property offers a serene retreat with quiet inner court views and a welcoming lounge area. Enjoy a minibar, daily snacks, and access to sister hotels' drink bars, all within walking distance to the Louvre.",
                 destination = paris,
                 address = "63 Rue De Richelieu, Paris",
                 images = mutableListOf(
@@ -149,7 +149,7 @@ class DataLoader(
                 comment = "Excellent",
                 latitude = 48.8785,
                 longitude = 2.2965,
-                description = "Luxury palace hotel with contemporary art, spa, and cinema.",
+                description = "Superb location and stylish decor define this beautiful property, surrounded by stunning scenery and easily accessible to top attractions. Enjoy large, gorgeous rooms and exceptional service, with staff dedicated to making every detail perfect for your stay.",
                 destination = paris,
                 address = "37 Av. Hoche, 75008 Paris, Francia",
                 images = mutableListOf(
@@ -201,7 +201,7 @@ class DataLoader(
                 comment = "Very Good",
                 latitude = 41.8986,
                 longitude = 12.4939,
-                description = "A contemporary hotel near the Termini station, known for its spacious rooms and a rooftop terrace with panoramic city views.",
+                description = "Modern design meets convenience, just steps from Rome's iconic attractions and train stations. Unwind at the rooftop bar with stunning views, or stay active in the well-equipped gym.",
                 destination = rome,
                 address = "Via Torino, 6, 00184 Rome RM, Italy",
                 images = mutableListOf(
@@ -249,7 +249,7 @@ class DataLoader(
                 comment = "Exceptional",
                 latitude = 41.9037,
                 longitude = 12.4897,
-                description = "Elegant 4-star hotel in the heart of Rome on the Via Nazionale. Famous for its complimentary minibar and exceptional breakfast.",
+                description = "Rome’s iconic landmarks are just a stroll away from this stylish hotel. Treat yourself to a rooftop terrace, Italian cuisine, and rejuvenating spa treatments. A buffet breakfast, limo service, and multilingual staff ensure a seamless stay amidst the Eternal City’s timeless charm.",
                 destination = rome,
                 address = "Via Nazionale, 22, 00184 Rome RM, Italy",
                 images = mutableListOf(
@@ -297,7 +297,7 @@ class DataLoader(
                 comment = "Excellent",
                 latitude = 41.8986,
                 longitude = 12.4769,
-                description = "High-end hotel right next to the Pantheon with exquisite dining options.",
+                description = "Steps away from Rome's iconic Pantheon, this hotel offers a serene retreat amidst the city's vibrant attractions. Savor Michelin-star dining and breathtaking rooftop views, creating unforgettable moments in the heart of Rome.",
                 destination = rome,
                 address = "Via di S. Chiara, 4/A, 00186 Rome RM, Italy",
                 images = mutableListOf(
@@ -349,7 +349,7 @@ class DataLoader(
                 comment = "Wonderful",
                 latitude = 40.7520,
                 longitude = -73.9935,
-                description = "An iconic Art Deco hotel in Midtown Manhattan, steps from Penn Station and Madison Square Garden. Classic style and unbeatable location.",
+                description = "In the heart of Manhattan, discover a haven near iconic Macy's. Enjoy full breakfast, explore with tour assistance, and unwind at the 24-hour gym or on-site bar. With three restaurants to choose from, this urban gem is perfect for those who crave excitement and convenience.",
                 destination = newYork,
                 address = "481 8th Ave, New York, NY 10001, EE. UU.",
                 images = mutableListOf(
@@ -397,7 +397,7 @@ class DataLoader(
                 comment = "Excellent",
                 latitude = 40.7646,
                 longitude = -73.9749,
-                description = "Legendary luxury hotel at the intersection of Fifth Avenue and Central Park South.",
+                description = "Stunning architecture and an iconic, serene ambiance define this luxurious property near Central Park. Enjoy elegantly decorated rooms, impeccable service, and a perfect location for exploring the city's finest shopping and dining.",
                 destination = newYork,
                 address = "768 5th Ave, New York, NY 10019, EE. UU",
                 images = mutableListOf(
@@ -445,7 +445,7 @@ class DataLoader(
                 comment = "Very Good",
                 latitude = 40.7407,
                 longitude = -74.0084,
-                description = "Trendy hotel located above the High Line park with incredible river and city views.",
+                description = "Tennis anyone? This stylish gem near the Whitney Museum of American Art serves up a full breakfast, 4 bars, and a 24-hour gym. Unwind with concierge services or browse the gift shop. When you need some fresh air, step out onto the terrace or stroll over to Little Island and The High Line Park.",
                 destination = newYork,
                 address = "848 Washington St, New York, NY 10014, EE. UU",
                 images = mutableListOf(

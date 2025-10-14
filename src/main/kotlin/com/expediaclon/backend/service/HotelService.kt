@@ -51,10 +51,12 @@ class HotelService(
                 id = it.id ?: throw IllegalStateException("Hotel ID cannot be null"),
                 name = it.name,
                 rating = it.rating,
+                comment = it.comment,
                 description = it.description,
                 city = it.city,
                 latitude = it.latitude,
                 longitude = it.longitude,
+                address = it.address,
                 images = it.images,
                 rooms = roomDtos
             )

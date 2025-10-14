@@ -8,7 +8,7 @@ import java.time.LocalDate
 data class RoomTypeDetailDto(
     val id: Long,
     val capacity: Int,
-    val name:String,
+    val name: String,
     val bedType: String,
     val pricePerNight: Double,
     val imageUrl: String
@@ -19,10 +19,12 @@ data class HotelDetailDto(
     val id: Long,
     val name: String,
     val rating: Double,
+    val comment: String,
     val description: String,
     val city: String,
     val latitude: Double,
     val longitude: Double,
+    val address: String,
     val images: List<String>,
     val rooms: List<RoomTypeDetailDto>
 )
@@ -44,7 +46,7 @@ data class HotelCardDto(
     val id: Long,
     val name: String,
     val rating: Double,
-    val comment:String,
+    val comment: String,
     val pricePerNight: Double,
     val city: String,
     val mainImage: String

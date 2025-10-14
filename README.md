@@ -119,11 +119,11 @@ The following endpoints are available in the current version.
     * **Request Body (Example):**
         ```json
         {
-            "sessionId": "123e4567-e89b-12d3-a456-426614174000",
-            "passengerCount": 2,
-            "roomTypeId": 1,
+            "roomId": 3007,
             "checkInDate": "2025-11-20",
-            "checkOutDate": "2025-11-25"
+            "checkOutDate": "2025-11-25",
+            "totalGuests": 2,
+            "guestNames": "Jonathan Smith, Angel Smith"
         }
         ```
 

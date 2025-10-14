@@ -1,5 +1,6 @@
 package com.expediaclon.backend.controller
 
+import com.expediaclon.backend.dto.HotelCardDto
 import com.expediaclon.backend.dto.HotelDetailDto
 import com.expediaclon.backend.model.Hotel
 import com.expediaclon.backend.service.HotelService
@@ -21,8 +22,8 @@ class HotelController(
         // @RequestParam extrae parámetros de la URL (ej: ?city=Paris&passengerCount=2).
         @RequestParam city: String,
         @RequestParam passengerCount: Int
-    ): ResponseEntity<List<Hotel>> {
-        val hotels = hotelService.searchHotels(city, passengerCount)
+    ): ResponseEntity<List<HotelCardDto>> {
+        val hotels = hotelService.findAllHotelsByCity(city, passengerCount)
         return ResponseEntity.ok(hotels)
     }
 
@@ -32,5 +33,4 @@ class HotelController(
         val hotelDetails = hotelService.getHotelDetails(hotelId)
         return ResponseEntity.ok(hotelDetails)
     }
-
 }

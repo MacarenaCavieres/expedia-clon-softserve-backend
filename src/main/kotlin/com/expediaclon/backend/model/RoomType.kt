@@ -15,26 +15,25 @@ import java.math.BigDecimal
 @Entity
 @Table(name = "room_types")
 data class RoomType(
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
     val id: Long = 0,
 
-    // Un tipo de habitación pertenece a un solo hotel.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id", nullable = false)
     val hotel: Hotel,
 
-    @Column(nullable = false)
     val name: String,
-
-    @Lob // @Lob indica que este campo puede ser un texto largo.
-    val description: String,
-
-    @Column(nullable = false)
     val capacity: Int,
 
-    @Column(nullable = false)
-    val pricePerNight: BigDecimal,
+    @Column(name = "bed_type")
+    val bedType: String,
 
-    @Column(nullable = false)
-    val totalInventory: Int
+    @Column(name = "price_per_night")
+    val pricePerNight: Double,
+
+    @Column(name = "image_url")
+    val imageUrl: String,
+
+    val description:String
+
 )

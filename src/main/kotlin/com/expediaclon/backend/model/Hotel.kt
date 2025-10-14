@@ -1,11 +1,6 @@
 package com.expediaclon.backend.model
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.Table
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "hotels")
@@ -22,6 +17,26 @@ data class Hotel(
     @Column(nullable = false)
     val city: String,
 
+    @Column(columnDefinition = "TEXT")
+    val description: String,
+
+    val latitude: Double,
+    val longitude: Double,
+
+    @ElementCollection
+    @CollectionTable(name = "hotel_images", joinColumns = [JoinColumn(name = "hotel_id")])
+    @Column(name = "images")
+    val images: MutableList<String> = mutableListOf(),
+
     @Column(nullable = false)
-    val stars: Int
+    val rating: Double,
+
+    val comment: String,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "destination_id", nullable = false)
+    val destination: Destination,
+
+    @OneToMany(mappedBy = "hotel", fetch = FetchType.LAZY)
+    val rooms: List<RoomType> = emptyList()
 )

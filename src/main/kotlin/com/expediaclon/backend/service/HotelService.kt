@@ -1,10 +1,13 @@
 package com.expediaclon.backend.service
 
+import com.expediaclon.backend.dto.HotelCardDto
 import com.expediaclon.backend.dto.HotelDetailDto
 import com.expediaclon.backend.dto.RoomTypeDetailDto
 import com.expediaclon.backend.model.Hotel
+import com.expediaclon.backend.model.RoomType
 import com.expediaclon.backend.repository.HotelRepository
 import com.expediaclon.backend.repository.RoomTypeRepository
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -16,39 +19,55 @@ class HotelService(
 ) {
 
     // Lógica para buscar hoteles (sin cambios).
-    fun searchHotels(city: String, passengerCount: Int): List<Hotel> {
-        return hotelRepository.findHotelsInCityWithSufficientCapacity(city, passengerCount)
+    fun findAllHotelsByCity(city: String, passengerCount: Int): List<HotelCardDto> {
+        val hotels = hotelRepository.findByCity(city)
+        return hotels.map { hotel ->
+            val minPrice = hotel.rooms.minOfOrNull { it.pricePerNight } ?: 0.0
+            val mainImage = hotel.images.firstOrNull()
+
+            HotelCardDto(
+                id = hotel.id ?: throw IllegalStateException("Hotel ID cannot be null"),
+                name = hotel.name,
+                rating = hotel.rating,
+                pricePerNight = minPrice,
+                mainImage = mainImage ?: "",
+                city = hotel.city
+            )
+        }
     }
 
     // Busca un hotel por su ID y lo transforma en un DTO detallado.
     @Transactional(readOnly = true) // Transacción de solo lectura, más eficiente.
-    fun getHotelDetails(hotelId: Long): HotelDetailDto {
-        // Buscamos el hotel o lanzamos una excepción si no existe.
-        val hotel = hotelRepository.findById(hotelId)
-            .orElseThrow { IllegalArgumentException("Hotel with ID: $hotelId not found.") }
+    fun getHotelDetails(hotelId: Long): HotelDetailDto? {
+        val hotel = hotelRepository.findByIdOrNull(hotelId) ?: return null
 
-        // Buscamos todos los tipos de habitación para ese hotel.
-        val roomTypes = roomTypeRepository.findByHotelId(hotelId)
+        return hotel.let {
+            val roomDtos = it.rooms.map { roomEntity ->
+                mapToRoomDetailDto(roomEntity)
+            }
 
-        // Convertimos la lista de entidades RoomType a una lista de DTOs.
-        val roomDtos = roomTypes.map { room ->
-            RoomTypeDetailDto(
-                id = room.id,
-                name = room.name,
-                description = room.description,
-                capacity = room.capacity,
-                pricePerNight = room.pricePerNight
+            HotelDetailDto(
+                id = it.id ?: throw IllegalStateException("Hotel ID cannot be null"),
+                name = it.name,
+                rating = it.rating,
+                description = it.description,
+                city = it.city,
+                latitude = it.latitude,
+                longitude = it.longitude,
+                images = it.images,
+                rooms = roomDtos
             )
         }
+    }
 
-        // Creamos y devolvemos el DTO principal del hotel.
-        return HotelDetailDto(
-            id = hotel.id,
-            name = hotel.name,
-            address = hotel.address,
-            city = hotel.city,
-            stars = hotel.stars,
-            rooms = roomDtos
+    private fun mapToRoomDetailDto(roomEntity: RoomType): RoomTypeDetailDto {
+        return RoomTypeDetailDto(
+            id = roomEntity.id ?: throw IllegalStateException("Room ID cannot be null"),
+            capacity = roomEntity.capacity,
+            name = roomEntity.name,
+            bedType = roomEntity.bedType.toString(),
+            pricePerNight = roomEntity.pricePerNight,
+            imageUrl = roomEntity.imageUrl
         )
     }
 }

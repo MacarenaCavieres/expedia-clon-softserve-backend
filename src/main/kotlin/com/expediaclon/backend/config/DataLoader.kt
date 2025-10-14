@@ -1,89 +1,520 @@
 package com.expediaclon.backend.config
 
+import com.expediaclon.backend.model.Booking
+import com.expediaclon.backend.model.Destination
 import com.expediaclon.backend.model.Hotel
 import com.expediaclon.backend.model.RoomType
+import com.expediaclon.backend.model.enums.BookingStatus
+import com.expediaclon.backend.repository.BookingRepository
+import com.expediaclon.backend.repository.DestinationRepository
 import com.expediaclon.backend.repository.HotelRepository
 import com.expediaclon.backend.repository.RoomTypeRepository
 import org.springframework.boot.CommandLineRunner
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
+import java.time.LocalDate
 
 // @Component hace que Spring gestione esta clase como un bean.
 // CommandLineRunner es una interfaz que hace que el método run() se ejecute al arrancar la aplicación.
 @Component
 class DataLoader(
+    private val destinationRepository: DestinationRepository,
     private val hotelRepository: HotelRepository,
-    private val roomTypeRepository: RoomTypeRepository
+    private val roomRepository: RoomTypeRepository,
+    private val bookingRepository: BookingRepository
 ) : CommandLineRunner {
 
     // Este método se ejecutará una vez que la aplicación haya iniciado.
     override fun run(vararg args: String?) {
         // Solo cargamos datos si la base de datos está vacía para no duplicar información.
-        if (hotelRepository.count() == 0L) {
-            println("Loading sample data for 3x3x3 rule...")
+        // Verificamos si hay destinos, ya que es la primera tabla que se inserta.
+        if (destinationRepository.count() == 0L) {
+            println("Loading sample data based on SQL schema...")
             loadData()
             println("Sample data loaded successfully.")
         }
     }
 
     private fun loadData() {
-        // --- 1. París ---
-        // Hotel 1.1
-        val hotelParis1 = hotelRepository.save(Hotel(name = "Louvre Palace", city = "Paris", stars = 5, address = "123 Rue de Rivoli"))
-        roomTypeRepository.save(RoomType(hotel = hotelParis1, name = "Standard Room", description = "A cozy room for two.", capacity = 2, pricePerNight = BigDecimal("250.00"), totalInventory = 10))
-        roomTypeRepository.save(RoomType(hotel = hotelParis1, name = "Superior Room", description = "A room with a beautiful city view.", capacity = 2, pricePerNight = BigDecimal("320.00"), totalInventory = 8))
-        roomTypeRepository.save(RoomType(hotel = hotelParis1, name = "Family Suite", description = "A spacious suite for the whole family.", capacity = 4, pricePerNight = BigDecimal("450.00"), totalInventory = 5))
+        // --- 1. Cargar Destinos (IDs 1, 2, 3) ---
+        val paris = destinationRepository.save(Destination(id = 1, name = "Paris"))
+        val rome = destinationRepository.save(Destination(id = 2, name = "Rome"))
+        val newYork = destinationRepository.save(Destination(id = 3, name = "New York"))
 
-        // Hotel 1.2
-        val hotelParis2 = hotelRepository.save(Hotel(name = "Le Marais Boutique", city = "Paris", stars = 4, address = "45 Rue des Francs-Bourgeois"))
-        roomTypeRepository.save(RoomType(hotel = hotelParis2, name = "Petite Single", description = "Perfect for the solo traveler.", capacity = 1, pricePerNight = BigDecimal("180.00"), totalInventory = 15))
-        roomTypeRepository.save(RoomType(hotel = hotelParis2, name = "Classic Double", description = "A classic and comfortable double room.", capacity = 2, pricePerNight = BigDecimal("240.00"), totalInventory = 10))
-        roomTypeRepository.save(RoomType(hotel = hotelParis2, name = "Deluxe Junior Suite", description = "Extra space and luxury amenities.", capacity = 3, pricePerNight = BigDecimal("350.00"), totalInventory = 5))
+        // -----------------------------------------------------------------------------------------
+        // --- 2. Hoteles y Habitaciones para París (Destination ID 1) ---
+        // -----------------------------------------------------------------------------------------
 
-        // Hotel 1.3
-        val hotelParis3 = hotelRepository.save(Hotel(name = "Montmartre View Inn", city = "Paris", stars = 3, address = "67 Rue de l'Abreuvoir"))
-        roomTypeRepository.save(RoomType(hotel = hotelParis3, name = "Budget Double", description = "A simple and affordable room for two.", capacity = 2, pricePerNight = BigDecimal("130.00"), totalInventory = 20))
-        roomTypeRepository.save(RoomType(hotel = hotelParis3, name = "Triple Room", description = "A room with three single beds.", capacity = 3, pricePerNight = BigDecimal("190.00"), totalInventory = 10))
-        roomTypeRepository.save(RoomType(hotel = hotelParis3, name = "Quad Room", description = "Ideal for a group of four.", capacity = 4, pricePerNight = BigDecimal("240.00"), totalInventory = 5))
+        // Hotel 1.1: Hotel Le Littré (ID 101)
+        val hotelParis1 = hotelRepository.save(
+            Hotel(
+                name = "Hotel Le Littré",
+                city = "Paris",
+                rating = 9.5,
+                comment = "Exceptional",
+                latitude = 48.8437,
+                longitude = 2.3276,
+                description = "Located in the heart of the Montparnasse district, this hotel offers a blend of classic Parisian charm and modern amenities. Excellent service and close proximity to attractions.",
+                destination = paris,
+                address = "9 Rue Littré, 75006 Paris, Francia",
+                images = mutableListOf(
+                    "https://images.trvl-media.com/lodging/1000000/10000/1700/1688/a19f6282.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/10000/1700/1688/d1669741.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/10000/1700/1688/b6b36f78.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/10000/1700/1688/36ab6c4d.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/10000/1700/1688/c5eba5b3.jpg?impolicy=resizecrop&rw=1200&ra=fit"
+                )
+            )
+        )
+        // Habitaciones Hotel Le Littré (IDs 1001-1003)
+        roomRepository.save(
+            RoomType(
+                id = 1001, hotel = hotelParis1, name = "Artist Room", capacity = 2, bedType = "QUEEN",
+                pricePerNight = 1800.00,
+                description = "A cozy room for two.",
+                imageUrl = "https://images.trvl-media.com/lodging/1000000/10000/1700/1688/cb3868c6.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 1002, hotel = hotelParis1, name = "Deluxe Collection Room", capacity = 4, bedType = "DOUBLE",
+                pricePerNight = 2000.00,
+                description = "A room with a beautiful city view.",
+                imageUrl = "https://images.trvl-media.com/lodging/1000000/10000/1700/1688/2c4ffbe0.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 1003, hotel = hotelParis1, name = "Executive Room", capacity = 2, bedType = "SINGLE",
+                pricePerNight = 1500.00,
+                description = "A spacious suite for the whole family.",
+                imageUrl = "https://images.trvl-media.com/lodging/1000000/10000/1700/1688/2d4c38d4.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
 
+        // Hotel 1.2: Hotel Malte (ID 102)
+        val hotelParis2 = hotelRepository.save(
+            Hotel(
+                name = "Hotel Malte",
+                city = "Paris",
+                rating = 8.6,
+                comment = "Very Good",
+                latitude = 48.8656,
+                longitude = 2.3364,
+                description = "A classic Parisian retreat with opulent decor and views of the Tuileries Garden.",
+                destination = paris,
+                address = "63 Rue De Richelieu, Paris",
+                images = mutableListOf(
+                    "https://images.trvl-media.com/lodging/1000000/60000/53600/53587/bbf26628.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/60000/53600/53587/d1460ade.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/60000/53600/53587/fd9625df.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/60000/53600/53587/e1317bd3.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/60000/53600/53587/3586b8bf.jpg?impolicy=resizecrop&rw=1200&ra=fit"
+                )
+            )
+        )
+        // Habitaciones Hotel Malte (IDs 1004-1006)
+        roomRepository.save(
+            RoomType(
+                id = 1004, hotel = hotelParis2, name = "Executive Room", capacity = 3, bedType = "KING",
+                pricePerNight = 1200.00,
+                description = "Perfect for the solo traveler.",
+                imageUrl = "https://images.trvl-media.com/lodging/1000000/60000/53600/53587/013e9a6f.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 1005, hotel = hotelParis2, name = "Artist Room", capacity = 2, bedType = "QUEEN",
+                pricePerNight = 1280.00,
+                description = "A classic and comfortable double room.",
+                imageUrl = "https://images.trvl-media.com/lodging/1000000/60000/53600/53587/cefd6f5b.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 1006, hotel = hotelParis2, name = "Deluxe Collection Room", capacity = 4, bedType = "DOUBLE",
+                pricePerNight = 1350.00,
+                description = "Extra space and luxury amenities.",
+                imageUrl = "https://images.trvl-media.com/lodging/1000000/60000/53600/53587/fd9625df.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
 
-        // --- 2. Roma ---
-        // Hotel 2.1
-        val hotelRoma1 = hotelRepository.save(Hotel(name = "The Roman Forum Hotel", city = "Rome", stars = 4, address = "456 Via dei Fori Imperiali"))
-        roomTypeRepository.save(RoomType(hotel = hotelRoma1, name = "Single Room", description = "Perfect for solo travelers.", capacity = 1, pricePerNight = BigDecimal("120.00"), totalInventory = 8))
-        roomTypeRepository.save(RoomType(hotel = hotelRoma1, name = "Superior Double Room", description = "A room with a balcony and a view.", capacity = 2, pricePerNight = BigDecimal("220.00"), totalInventory = 12))
-        roomTypeRepository.save(RoomType(hotel = hotelRoma1, name = "Colosseum View Suite", description = "A premium suite with direct views of the Colosseum.", capacity = 4, pricePerNight = BigDecimal("500.00"), totalInventory = 3))
+        // Hotel 1.3: Hôtel Le Royal Monceau (ID 103)
+        val hotelParis3 = hotelRepository.save(
+            Hotel(
 
-        // Hotel 2.2
-        val hotelRoma2 = hotelRepository.save(Hotel(name = "Trastevere Charm B&B", city = "Rome", stars = 3, address = "78 Piazza di Santa Maria"))
-        roomTypeRepository.save(RoomType(hotel = hotelRoma2, name = "Cozy Double", description = "A charming and quiet room.", capacity = 2, pricePerNight = BigDecimal("110.00"), totalInventory = 10))
-        roomTypeRepository.save(RoomType(hotel = hotelRoma2, name = "Terrace Room", description = "A beautiful room with a private terrace.", capacity = 2, pricePerNight = BigDecimal("160.00"), totalInventory = 5))
-        roomTypeRepository.save(RoomType(hotel = hotelRoma2, name = "Apartment for Four", description = "A small apartment with a kitchenette.", capacity = 4, pricePerNight = BigDecimal("210.00"), totalInventory = 3))
+                name = "Hôtel Le Royal Monceau",
+                city = "Paris",
+                rating = 8.9,
+                comment = "Excellent",
+                latitude = 48.8785,
+                longitude = 2.2965,
+                description = "Luxury palace hotel with contemporary art, spa, and cinema.",
+                destination = paris,
+                address = "37 Av. Hoche, 75008 Paris, Francia",
+                images = mutableListOf(
+                    "https://images.trvl-media.com/lodging/1000000/20000/14600/14582/63c4817a.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/20000/14600/14582/3c1a5867.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/20000/14600/14582/b6924c2c.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/20000/14600/14582/52a6344e.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/20000/14600/14582/bcc79a8a.jpg?impolicy=resizecrop&rw=1200&ra=fit"
+                )
+            )
+        )
+        // Habitaciones Hôtel Le Royal Monceau (IDs 1007-1009)
+        roomRepository.save(
+            RoomType(
+                id = 1007, hotel = hotelParis3, name = "Executive Room", capacity = 2, bedType = "KING",
+                pricePerNight = 1750.00,
+                description = "A simple and affordable room for two.",
+                imageUrl = "https://images.trvl-media.com/lodging/1000000/20000/14600/14582/687e392b.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 1008, hotel = hotelParis3, name = "Deluxe Collection Room", capacity = 2, bedType = "QUEEN",
+                pricePerNight = 1680.00,
+                description = "A room with three single beds.",
+                imageUrl = "https://images.trvl-media.com/lodging/1000000/20000/14600/14582/6f821a3e.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 1009, hotel = hotelParis3, name = "Artist Room", capacity = 6, bedType = "KING",
+                pricePerNight = 1100.0,
+                description = "Ideal for a group of four.",
+                imageUrl = "https://images.trvl-media.com/lodging/1000000/20000/14600/14582/243d7269.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
 
-        // Hotel 2.3
-        val hotelRoma3 = hotelRepository.save(Hotel(name = "Vatican Garden Hotel", city = "Rome", stars = 5, address = "90 Via della Conciliazione"))
-        roomTypeRepository.save(RoomType(hotel = hotelRoma3, name = "Deluxe King", description = "A luxurious room with a king-sized bed.", capacity = 2, pricePerNight = BigDecimal("350.00"), totalInventory = 15))
-        roomTypeRepository.save(RoomType(hotel = hotelRoma3, name = "Twin Room", description = "A comfortable room with two single beds.", capacity = 2, pricePerNight = BigDecimal("320.00"), totalInventory = 10))
-        roomTypeRepository.save(RoomType(hotel = hotelRoma3, name = "St. Peter's Suite", description = "Unparalleled luxury with views of St. Peter's Basilica.", capacity = 4, pricePerNight = BigDecimal("900.00"), totalInventory = 2))
+        // -----------------------------------------------------------------------------------------
+        // --- 3. Hoteles y Habitaciones para Roma (Destination ID 2) ---
+        // -----------------------------------------------------------------------------------------
 
+        // Hotel 2.1: The Hive Hotel (ID 201)
+        val hotelRoma1 = hotelRepository.save(
+            Hotel(
 
-        // --- 3. Nueva York ---
-        // Hotel 3.1
-        val hotelNY1 = hotelRepository.save(Hotel(name = "Central Park Hotel", city = "New York", stars = 5, address = "789 Central Park South"))
-        roomTypeRepository.save(RoomType(hotel = hotelNY1, name = "Queen Room", description = "A modern room with a queen-sized bed.", capacity = 2, pricePerNight = BigDecimal("350.00"), totalInventory = 20))
-        roomTypeRepository.save(RoomType(hotel = hotelNY1, name = "King Room Park View", description = "A room with a king bed and park view.", capacity = 2, pricePerNight = BigDecimal("450.00"), totalInventory = 15))
-        roomTypeRepository.save(RoomType(hotel = hotelNY1, name = "View Suite", description = "A luxury suite with a park view.", capacity = 4, pricePerNight = BigDecimal("750.00"), totalInventory = 3))
+                name = "The Hive Hotel",
+                city = "Rome",
+                rating = 8.3,
+                comment = "Very Good",
+                latitude = 41.8986,
+                longitude = 12.4939,
+                description = "A contemporary hotel near the Termini station, known for its spacious rooms and a rooftop terrace with panoramic city views.",
+                destination = rome,
+                address = "Via Torino, 6, 00184 Rome RM, Italy",
+                images = mutableListOf(
+                    "https://images.trvl-media.com/lodging/25000000/24470000/24463300/24463268/ec6c185a.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/25000000/24470000/24463300/24463268/017e7631.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/25000000/24470000/24463300/24463268/cf6493ed.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/25000000/24470000/24463300/24463268/c6cfe293.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/25000000/24470000/24463300/24463268/6314e60e.jpg?impolicy=resizecrop&rw=1200&ra=fit"
+                )
+            )
+        )
+        // Habitaciones The Hive Hotel (IDs 2001-2003)
+        roomRepository.save(
+            RoomType(
+                id = 2001, hotel = hotelRoma1, name = "Artist Room", capacity = 2, bedType = "KING",
+                pricePerNight = 1155.50,
+                description = "Perfect for solo travelers.",
+                imageUrl = "https://images.trvl-media.com/lodging/25000000/24470000/24463300/24463268/9acbfc3e.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 2002, hotel = hotelRoma1, name = "Deluxe Collection Room", capacity = 1, bedType = "SINGLE",
+                pricePerNight = 1110.00,
+                description = "A room with a balcony and a view.",
+                imageUrl = "https://images.trvl-media.com/lodging/25000000/24470000/24463300/24463268/5388b3e5.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 2003, hotel = hotelRoma1, name = "Executive Room", capacity = 4, bedType = "DOUBLE",
+                pricePerNight = 1210.00,
+                description = "A premium suite with direct views of the Colosseum.",
+                imageUrl = "https://images.trvl-media.com/lodging/25000000/24470000/24463300/24463268/1b89248b.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
 
-        // Hotel 3.2
-        val hotelNY2 = hotelRepository.save(Hotel(name = "Brooklyn Bridge Loft", city = "New York", stars = 4, address = "12 Main Street, Brooklyn"))
-        roomTypeRepository.save(RoomType(hotel = hotelNY2, name = "Standard Loft", description = "A stylish loft for two.", capacity = 2, pricePerNight = BigDecimal("280.00"), totalInventory = 12))
-        roomTypeRepository.save(RoomType(hotel = hotelNY2, name = "Family Loft", description = "A two-level loft for families.", capacity = 5, pricePerNight = BigDecimal("420.00"), totalInventory = 6))
-        roomTypeRepository.save(RoomType(hotel = hotelNY2, name = "Penthouse Suite", description = "Top floor suite with panoramic views.", capacity = 4, pricePerNight = BigDecimal("600.00"), totalInventory = 2))
+        // Hotel 2.2: Hotel Artemide (ID 202)
+        val hotelRoma2 = hotelRepository.save(
+            Hotel(
 
-        // Hotel 3.3
-        val hotelNY3 = hotelRepository.save(Hotel(name = "Times Square Inn", city = "New York", stars = 3, address = "345 West 46th Street"))
-        roomTypeRepository.save(RoomType(hotel = hotelNY3, name = "Compact Double", description = "A small, efficient room in the heart of the city.", capacity = 2, pricePerNight = BigDecimal("210.00"), totalInventory = 30))
-        roomTypeRepository.save(RoomType(hotel = hotelNY3, name = "Theater View King", description = "A room overlooking the theater district.", capacity = 2, pricePerNight = BigDecimal("290.00"), totalInventory = 10))
-        roomTypeRepository.save(RoomType(hotel = hotelNY3, name = "Connecting Rooms", description = "Two connecting rooms for larger groups.", capacity = 6, pricePerNight = BigDecimal("480.00"), totalInventory = 5))
+                name = "Hotel Artemide",
+                city = "Rome",
+                rating = 9.7,
+                comment = "Exceptional",
+                latitude = 41.9037,
+                longitude = 12.4897,
+                description = "Elegant 4-star hotel in the heart of Rome on the Via Nazionale. Famous for its complimentary minibar and exceptional breakfast.",
+                destination = rome,
+                address = "Via Nazionale, 22, 00184 Rome RM, Italy",
+                images = mutableListOf(
+                    "https://images.trvl-media.com/lodging/1000000/50000/45900/45856/dccbfa6d.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/50000/45900/45856/68d6e905.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/50000/45900/45856/59690d15.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/50000/45900/45856/4228e015.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/50000/45900/45856/91bccfdf.jpg?impolicy=resizecrop&rw=1200&ra=fit"
+                )
+            )
+        )
+        // Habitaciones Hotel Artemide (IDs 2004-2006)
+        roomRepository.save(
+            RoomType(
+                id = 2004, hotel = hotelRoma2, name = "Executive Room", capacity = 2, bedType = "QUEEN",
+                pricePerNight = 1190.00,
+                description = "Elegant 4-star hotel in the heart of Rome on the Via Nazionale.",
+                imageUrl = "https://images.trvl-media.com/lodging/1000000/50000/45900/45856/f42fba1f.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 2005, hotel = hotelRoma2, name = "Deluxe Collection Room", capacity = 3, bedType = "KING",
+                pricePerNight = 1240.00,
+                description = "A charming and quiet room.",
+                imageUrl = "https://images.trvl-media.com/lodging/1000000/50000/45900/45856/7a05c017.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 2006, hotel = hotelRoma2, name = "Artist Room", capacity = 2, bedType = "SINGLE",
+                pricePerNight = 1160.00,
+                description = "A beautiful room with a private terrace.",
+                imageUrl = "https://images.trvl-media.com/lodging/1000000/50000/45900/45856/de6a2231.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+
+        // Hotel 2.3: The Pantheon Iconic Rome Hotel (ID 203)
+        val hotelRoma3 = hotelRepository.save(
+            Hotel(
+
+                name = "The Pantheon Iconic Rome Hotel",
+                city = "Rome",
+                rating = 8.8,
+                comment = "Excellent",
+                latitude = 41.8986,
+                longitude = 12.4769,
+                description = "High-end hotel right next to the Pantheon with exquisite dining options.",
+                destination = rome,
+                address = "Via di S. Chiara, 4/A, 00186 Rome RM, Italy",
+                images = mutableListOf(
+                    "https://images.trvl-media.com/lodging/24000000/23980000/23972600/23972532/1b1cd8f0.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/24000000/23980000/23972600/23972532/f7ee2a19.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/24000000/23980000/23972600/23972532/8815008d.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/24000000/23980000/23972600/23972532/13aeb6b6.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/24000000/23980000/23972600/23972532/091d2de9.jpg?impolicy=resizecrop&rw=1200&ra=fit"
+                )
+            )
+        )
+        // Habitaciones The Pantheon Iconic Rome Hotel (IDs 2007-2009)
+        roomRepository.save(
+            RoomType(
+                id = 2007, hotel = hotelRoma3, name = "Deluxe Collection Room", capacity = 2, bedType = "KING",
+                pricePerNight = 1450.00,
+                description = "A luxurious room with a king-sized bed.",
+                imageUrl = "https://images.trvl-media.com/lodging/24000000/23980000/23972600/23972532/8a901565.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 2008, hotel = hotelRoma3, name = "Artist Room", capacity = 4, bedType = "DOUBLE",
+                pricePerNight = 1550.00,
+                description = "A comfortable room with two single beds.",
+                imageUrl = "https://images.trvl-media.com/lodging/24000000/23980000/23972600/23972532/36b3de8b.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 2009, hotel = hotelRoma3, name = "Executive Room", capacity = 2, bedType = "QUEEN",
+                pricePerNight = 1400.00,
+                description = "Unparalleled luxury with views of St. Peter's Basilica.",
+                imageUrl = "https://images.trvl-media.com/lodging/24000000/23980000/23972600/23972532/36b3de8b.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+
+        // -----------------------------------------------------------------------------------------
+        // --- 4. Hoteles y Habitaciones para Nueva York (Destination ID 3) ---
+        // -----------------------------------------------------------------------------------------
+
+        // Hotel 3.1: The New Yorker, A Wyndham Hotel (ID 301)
+        val hotelNY1 = hotelRepository.save(
+            Hotel(
+
+                name = "The New Yorker, A Wyndham Hotel",
+                city = "New York",
+                rating = 9.2,
+                comment = "Wonderful",
+                latitude = 40.7520,
+                longitude = -73.9935,
+                description = "An iconic Art Deco hotel in Midtown Manhattan, steps from Penn Station and Madison Square Garden. Classic style and unbeatable location.",
+                destination = newYork,
+                address = "481 8th Ave, New York, NY 10001, EE. UU.",
+                images = mutableListOf(
+                    "https://images.trvl-media.com/lodging/1000000/50000/41100/41009/cb62f2a4.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/50000/41100/41009/d39e5614.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/50000/41100/41009/35bdea24.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/50000/41100/41009/695376e9.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/50000/41100/41009/1e662ebe.jpg?impolicy=resizecrop&rw=1200&ra=fit"
+                )
+            )
+        )
+        // Habitaciones The New Yorker (IDs 3001-3003)
+        roomRepository.save(
+            RoomType(
+                id = 3001, hotel = hotelNY1, name = "Executive Room", capacity = 1, bedType = "SINGLE",
+                pricePerNight = 1120.00,
+                description = "A modern room with a queen-sized bed.",
+                imageUrl = "https://images.trvl-media.com/lodging/1000000/50000/41100/41009/d39e5614.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 3002, hotel = hotelNY1, name = "Artist Room", capacity = 2, bedType = "DOUBLE",
+                pricePerNight = 1180.00,
+                description = "A room with a king bed and park view.",
+                imageUrl = "https://images.trvl-media.com/lodging/1000000/50000/41100/41009/a00861e6.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 3003, hotel = hotelNY1, name = "Deluxe Collection Room", capacity = 2, bedType = "QUEEN",
+                pricePerNight = 1210.00,
+                description = "A luxury suite with a park view.",
+                imageUrl = "https://images.trvl-media.com/lodging/1000000/50000/41100/41009/55cb9634.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+
+        // Hotel 3.2: The Plaza Hotel (ID 302)
+        val hotelNY2 = hotelRepository.save(
+            Hotel(
+
+                name = "The Plaza Hotel",
+                city = "New York",
+                rating = 8.9,
+                comment = "Excellent",
+                latitude = 40.7646,
+                longitude = -73.9749,
+                description = "Legendary luxury hotel at the intersection of Fifth Avenue and Central Park South.",
+                destination = newYork,
+                address = "768 5th Ave, New York, NY 10019, EE. UU",
+                images = mutableListOf(
+                    "https://images.trvl-media.com/lodging/1000000/30000/28100/28044/2549538f.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/30000/28100/28044/ac66e6a0.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/30000/28100/28044/c88b3360.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/30000/28100/28044/5d7741e0.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/1000000/30000/28100/28044/bccfdc8b.jpg?impolicy=resizecrop&rw=1200&ra=fit"
+                )
+            )
+        )
+        // Habitaciones The Plaza Hotel (IDs 3004-3006)
+        roomRepository.save(
+            RoomType(
+                id = 3004, hotel = hotelNY2, name = "Artist Room", capacity = 2, bedType = "KING",
+                pricePerNight = 1990.00,
+                description = "A stylish loft for two.",
+                imageUrl = "https://images.trvl-media.com/lodging/10000000/9390000/9382200/9382123/67fc4d79.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 3005, hotel = hotelNY2, name = "Deluxe Collection Room", capacity = 4, bedType = "DOUBLE",
+                pricePerNight = 1250.00,
+                description = "A two-level loft for families.",
+                imageUrl = "https://images.trvl-media.com/lodging/10000000/9390000/9382200/9382123/c9227d13.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 3006, hotel = hotelNY2, name = "Executive Room", capacity = 2, bedType = "QUEEN",
+                pricePerNight = 1850.00,
+                description = "Top floor suite with panoramic views.",
+                imageUrl = "https://images.trvl-media.com/lodging/10000000/9390000/9382200/9382123/5fd78ea2.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+
+        // Hotel 3.3: The Standard, High Line (ID 303)
+        val hotelNY3 = hotelRepository.save(
+            Hotel(
+
+                name = "The Standard, High Line",
+                city = "New York",
+                rating = 8.5,
+                comment = "Very Good",
+                latitude = 40.7407,
+                longitude = -74.0084,
+                description = "Trendy hotel located above the High Line park with incredible river and city views.",
+                destination = newYork,
+                address = "848 Washington St, New York, NY 10014, EE. UU",
+                images = mutableListOf(
+                    "https://images.trvl-media.com/lodging/11000000/10640000/10630200/10630123/94886612.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/11000000/10640000/10630200/10630123/6954b2cb.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/11000000/10640000/10630200/10630123/ba107088.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/11000000/10640000/10630200/10630123/2657fd06.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                    "https://images.trvl-media.com/lodging/11000000/10640000/10630200/10630123/09570003.jpg?impolicy=resizecrop&rw=1200&ra=fit"
+                )
+            )
+        )
+        // Habitaciones The Standard, High Line (IDs 3007-3009)
+        roomRepository.save(
+            RoomType(
+                id = 3007, hotel = hotelNY3, name = "Executive Room", capacity = 2, bedType = "QUEEN",
+                pricePerNight = 1380.00,
+                description = "A small, efficient room in the heart of the city.",
+                imageUrl = "https://images.trvl-media.com/lodging/11000000/10640000/10630200/10630123/bdf7b4bc.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 3008, hotel = hotelNY3, name = "Deluxe Collection Room", capacity = 2, bedType = "KING",
+                pricePerNight = 1420.00,
+                description = "A room overlooking the theater district.",
+                imageUrl = "https://images.trvl-media.com/lodging/11000000/10640000/10630200/10630123/9873328d.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+        roomRepository.save(
+            RoomType(
+                id = 3009, hotel = hotelNY3, name = "Artist Room", capacity = 1, bedType = "SINGLE",
+                pricePerNight = 1300.00,
+                description = "Two connecting rooms for larger groups.",
+                imageUrl = "https://images.trvl-media.com/lodging/11000000/10640000/10630200/10630123/5de54bd7.jpg?impolicy=fcrop&w=1200&h=800&quality=medium"
+            )
+        )
+
+        // -----------------------------------------------------------------------------------------
+        // --- 5. Cargar Reservas ---
+        // -----------------------------------------------------------------------------------------
+
+        // Reserva Cancelada (ID 1)
+        bookingRepository.save(
+            Booking(
+                checkInDate = LocalDate.of(2025, 11, 10),
+                checkOutDate = LocalDate.of(2025, 11, 15),
+                totalGuests = 2,
+                guestNames = "Alice Johnson, Bob Johnson",
+                totalPrice = 1900.00,
+                status = BookingStatus.CANCELED,
+                hotelName = "Hotel Le Littré",
+                hotelCity = "Paris",
+                hotelImage = "https://images.trvl-media.com/lodging/1000000/10000/1700/1688/a19f6282.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455"
+            )
+        )
+
+        // Reserva Pendiente (ID 2)
+        bookingRepository.save(
+            Booking(
+                checkInDate = LocalDate.of(2026, 1, 20),
+                checkOutDate = LocalDate.of(2026, 1, 25),
+                totalGuests = 1,
+                guestNames = "Charlie Brown",
+                totalPrice = 1625.00,
+                status = BookingStatus.PENDING,
+                hotelName = "The Hive Hotel",
+                hotelCity = "Rome",
+                hotelImage = "https://images.trvl-media.com/lodging/25000000/24470000/24463300/24463268/ec6c185a.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455"
+            )
+        )
     }
 }

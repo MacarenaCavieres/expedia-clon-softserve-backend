@@ -7,6 +7,7 @@ import com.expediaclon.backend.model.enums.BookingStatus
 import com.expediaclon.backend.repository.BookingRepository
 import com.expediaclon.backend.repository.RoomTypeRepository
 import org.slf4j.LoggerFactory
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -24,50 +25,33 @@ class BookingService(
 
     @Transactional
     fun createBooking(request: BookingRequest): Booking {
-        // [INFO] Se registra el inicio del proceso. Este mensaje siempre aparecerá.
-        logger.info("Starting reservation creation for the session: ${request.sessionId}")
 
-        // [DEBUG] Se registran detalles internos que solo son útiles para depurar.
-        logger.debug("Searching RoomType with ID: ${request.roomTypeId}")
+        val room = roomTypeRepository.findByIdOrNull(request.roomId)
+            ?: throw NoSuchElementException("Room with ID ${request.roomId} not found.")
 
-        val roomType = roomTypeRepository.findById(request.roomTypeId)
-            .orElseThrow {
-                // [ERROR] Se registra un fallo crítico si no se encuentra la habitación.
-                logger.error("The RoomType with the given ID wasn't found: ${request.roomTypeId}")
-                IllegalArgumentException("The room type wasn't found.")
-            }
+        val hotel = room.hotel
+            ?: throw IllegalStateException("Room is not associated with any hotel.")
 
-        // Room availability validation
-
-
-        logger.debug("RoomType found: ${roomType.name} in the hotel ${roomType.hotel.name}")
-
-        val numberOfNights = ChronoUnit.DAYS.between(request.checkInDate, request.checkOutDate)
-
-        if (numberOfNights <= 0) {
-            throw IllegalArgumentException("The check-out date must be after the check-in date.")
+        val numNights = ChronoUnit.DAYS.between(request.checkInDate, request.checkOutDate)
+        if (numNights <= 0) {
+            throw IllegalArgumentException("Check-out date must be after check-in date.")
         }
-
-        val totalPrice = roomType.pricePerNight.multiply(BigDecimal.valueOf(numberOfNights))
-
-        val confirmationCode = generateConfirmationCode()
-
-        logger.debug("Amount of nights: $numberOfNights, Total Price: $totalPrice")
+        val totalPrice = room.pricePerNight * numNights.toDouble()
 
         val newBooking = Booking(
-            sessionId = request.sessionId,
-            passengerCount = request.passengerCount,
-            roomType = roomType,
+            id = null,
             checkInDate = request.checkInDate,
             checkOutDate = request.checkOutDate,
+            totalGuests = request.totalGuests,
+            guestNames = request.guestNames,
             totalPrice = totalPrice,
-            confirmationCode = confirmationCode,
-            status = BookingStatus.CONFIRMED
+            status = BookingStatus.PENDING,
+            hotelName = hotel.name,
+            hotelCity = hotel.city,
+            hotelImage = hotel.images.firstOrNull() ?: ""
         )
 
         val savedBooking = bookingRepository.save(newBooking)
-        // [INFO] Se registra la finalización exitosa del proceso.
-        logger.info("Reservation successfully created. Confirmation code: ${savedBooking.confirmationCode}")
 
         return savedBooking
     }
@@ -92,37 +76,70 @@ class BookingService(
         return booking.toDetailDto()
     }
 
+    fun updateReservation(id: Long, requestDto: BookingRequest): Booking? {
+        val reservationToUpdate = bookingRepository.findByIdOrNull(id) ?: return null
+
+        val room = roomTypeRepository.findByIdOrNull(requestDto.roomId)
+            ?: throw NoSuchElementException("Room with ID ${requestDto.roomId} not found.")
+
+        val hotel = room.hotel
+            ?: throw IllegalStateException("Room is not associated with any hotel.")
+
+        val numNights = ChronoUnit.DAYS.between(requestDto.checkInDate, requestDto.checkOutDate)
+        if (numNights <= 0) {
+            throw IllegalArgumentException("Check-out date must be after check-in date.")
+        }
+        val newTotalPrice = room.pricePerNight * numNights.toDouble()
+
+        val updatedReservation = reservationToUpdate.copy(
+            id = id,
+            checkInDate = requestDto.checkInDate,
+            checkOutDate = requestDto.checkOutDate,
+            totalGuests = requestDto.totalGuests,
+            guestNames = requestDto.guestNames,
+            totalPrice = newTotalPrice,
+            status = reservationToUpdate.status,
+            hotelName = hotel.name,
+            hotelCity = hotel.city,
+            hotelImage = hotel.images.firstOrNull() ?: ""
+        )
+
+        return bookingRepository.save(updatedReservation)
+    }
+
     // Cambia el estado de una reserva a CANCELLED.
     @Transactional
-    fun cancelBooking(bookingId: Long): BookingDetailDto {
-        logger.info("Canceling reservation with ID: $bookingId")
-        val booking = bookingRepository.findById(bookingId)
-            .orElseThrow { IllegalArgumentException("Reservation with ID: $bookingId not found.") }
+    fun cancelBooking(bookingId: Long, status: BookingStatus): Booking? {
+        val reservationToUpdate = bookingRepository.findByIdOrNull(bookingId) ?: return null
+        val updatedReservation = reservationToUpdate.copy(
+            id = reservationToUpdate.id,
+            status = status,
+        )
 
-        // Lógica de negocio para la cancelación.
-        if (booking.status == BookingStatus.CANCELLED) {
-            throw IllegalStateException("The reservation has been canceled.")
+        return bookingRepository.save(updatedReservation)
+    }
+
+    fun deleteReservation(id: Long): Boolean {
+        return if (bookingRepository.existsById(id)) {
+            bookingRepository.deleteById(id)
+            true
+        } else {
+            false
         }
-
-        booking.status = BookingStatus.CANCELLED
-        val updatedBooking = bookingRepository.save(booking)
-        logger.info("The reservation with ID: $bookingId has been successfully cancelled.")
-
-        return updatedBooking.toDetailDto()
     }
 
     // Función de extensión para convertir una entidad Booking a su DTO.
     private fun com.expediaclon.backend.model.Booking.toDetailDto(): BookingDetailDto {
         return BookingDetailDto(
             id = this.id,
-            confirmationCode = this.confirmationCode,
-            hotelName = this.roomType?.hotel?.name ?: "N/A",
-            roomName = this.roomType?.name ?: "N/A",
-            passengerCount = this.passengerCount,
+            hotelName = this.hotelName ?: "N/A",
+            totalGuests = this.totalGuests,
             checkInDate = this.checkInDate,
             checkOutDate = this.checkOutDate,
             totalPrice = this.totalPrice,
-            status = this.status.name
+            status = this.status,
+            hotelCity = this.hotelCity,
+            hotelImage = this.hotelImage
         )
     }
 }

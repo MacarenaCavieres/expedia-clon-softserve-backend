@@ -19,11 +19,11 @@ class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgumentException(ex: IllegalArgumentException, request: WebRequest): ResponseEntity<ErrorDetails> {
         // Registramos el error en el log del servidor para tener un registro.
-        logger.warn("Petición inválida: ${ex.message}")
+        logger.warn("Invalid request: ${ex.message}")
 
         // Creamos un objeto de error limpio para enviar al cliente.
         val errorDetails = ErrorDetails(
-            message = ex.message ?: "Argumento inválido",
+            message = ex.message ?: "Invalid argument",
             details = request.getDescription(false)
         )
 

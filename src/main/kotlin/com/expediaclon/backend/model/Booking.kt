@@ -20,40 +20,22 @@ import java.util.UUID
 @Entity
 @Table(name = "bookings")
 data class Booking(
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long? = null,
 
-    // Este campo ahora identifica la sesión del usuario no registrado.
-    @Column(nullable = false)
-    val sessionId: UUID,
-
-    // El número de pasajeros ahora pertenece directamente a la reserva.
-    @Column(nullable = false)
-    val passengerCount: Int,
-
-    // Una reserva puede ser de un tipo de habitación.
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_type_id")
-    val roomType: RoomType? = null,
-
-    @Column(nullable = false)
     val checkInDate: LocalDate,
-
-    @Column(nullable = false)
     val checkOutDate: LocalDate,
-
-    @Column(nullable = false, unique = true)
-    val confirmationCode: String,
-
-    @Column(nullable = false)
-    val totalPrice: BigDecimal,
+    val totalGuests: Int,
+    val guestNames: String,
+    val totalPrice: Double,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    var status: BookingStatus = BookingStatus.PENDING,
+    val status: BookingStatus,
 
-    @Column(nullable = false)
-    val createdAt: Instant = Instant.now()
+    val hotelName: String,
+    val hotelCity: String,
+    val hotelImage: String
 
     // En el futuro, una reserva podría ser de un vuelo.
     // @ManyToOne @JoinColumn(name = "flight_id") val flight: Flight? = null,

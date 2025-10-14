@@ -44,6 +44,7 @@ data class HotelCardDto(
     val id: Long,
     val name: String,
     val rating: Double,
+    val comment:String,
     val pricePerNight: Double,
     val city: String,
     val mainImage: String

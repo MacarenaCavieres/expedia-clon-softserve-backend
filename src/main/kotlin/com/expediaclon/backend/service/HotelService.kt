@@ -29,6 +29,7 @@ class HotelService(
                 id = hotel.id ?: throw IllegalStateException("Hotel ID cannot be null"),
                 name = hotel.name,
                 rating = hotel.rating,
+                comment = hotel.comment,
                 pricePerNight = minPrice,
                 mainImage = mainImage ?: "",
                 city = hotel.city

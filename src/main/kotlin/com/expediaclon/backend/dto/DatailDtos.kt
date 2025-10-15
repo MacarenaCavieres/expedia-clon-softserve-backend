@@ -35,6 +35,7 @@ data class BookingDetailDto(
     val checkInDate: LocalDate,
     val checkOutDate: LocalDate,
     val totalGuests: Int,
+    val guestNames: String,
     val totalPrice: Double,
     val status: BookingStatus,
     val hotelName: String,

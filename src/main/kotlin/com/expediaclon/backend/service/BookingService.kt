@@ -134,6 +134,7 @@ class BookingService(
             id = this.id,
             hotelName = this.hotelName ?: "N/A",
             totalGuests = this.totalGuests,
+            guestNames = this.guestNames,
             checkInDate = this.checkInDate,
             checkOutDate = this.checkOutDate,
             totalPrice = this.totalPrice,

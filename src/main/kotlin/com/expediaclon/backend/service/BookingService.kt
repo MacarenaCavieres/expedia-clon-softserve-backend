@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -48,7 +47,9 @@ class BookingService(
             status = BookingStatus.PENDING,
             hotelName = hotel.name,
             hotelCity = hotel.city,
-            hotelImage = hotel.images.firstOrNull() ?: ""
+            hotelImage = hotel.images.firstOrNull() ?: "",
+            roomId = request.roomId
+
         )
 
         val savedBooking = bookingRepository.save(newBooking)
@@ -140,7 +141,8 @@ class BookingService(
             totalPrice = this.totalPrice,
             status = this.status,
             hotelCity = this.hotelCity,
-            hotelImage = this.hotelImage
+            hotelImage = this.hotelImage,
+            roomId = this.roomId
         )
     }
 }

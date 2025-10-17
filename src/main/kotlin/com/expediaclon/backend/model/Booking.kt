@@ -9,13 +9,10 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
-import java.math.BigDecimal
-import java.time.Instant
+
 import java.time.LocalDate
-import java.util.UUID
+
 
 @Entity
 @Table(name = "bookings")
@@ -35,7 +32,10 @@ data class Booking(
 
     val hotelName: String,
     val hotelCity: String,
-    val hotelImage: String
+    val hotelImage: String,
+
+    @Column(name = "room_id", nullable = false)
+    val roomId: Long
 
     // En el futuro, una reserva podría ser de un vuelo.
     // @ManyToOne @JoinColumn(name = "flight_id") val flight: Flight? = null,

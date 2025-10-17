@@ -1,7 +1,7 @@
 package com.expediaclon.backend.dto
 
+import com.expediaclon.backend.model.RoomType
 import com.expediaclon.backend.model.enums.BookingStatus
-import java.math.BigDecimal
 import java.time.LocalDate
 
 // DTO para representar los detalles de un tipo de habitación.
@@ -40,7 +40,8 @@ data class BookingDetailDto(
     val status: BookingStatus,
     val hotelName: String,
     val hotelCity: String,
-    val hotelImage: String
+    val hotelImage: String,
+    val roomId: Long,
 )
 
 data class HotelCardDto(

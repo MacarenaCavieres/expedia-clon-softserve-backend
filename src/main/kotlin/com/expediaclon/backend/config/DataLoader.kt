@@ -498,7 +498,8 @@ class DataLoader(
                 status = BookingStatus.CANCELED,
                 hotelName = "Hotel Le Littré",
                 hotelCity = "Paris",
-                hotelImage = "https://images.trvl-media.com/lodging/1000000/10000/1700/1688/a19f6282.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455"
+                hotelImage = "https://images.trvl-media.com/lodging/1000000/10000/1700/1688/a19f6282.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                roomId = 1001
             )
         )
 
@@ -513,7 +514,8 @@ class DataLoader(
                 status = BookingStatus.PENDING,
                 hotelName = "The Hive Hotel",
                 hotelCity = "Rome",
-                hotelImage = "https://images.trvl-media.com/lodging/25000000/24470000/24463300/24463268/ec6c185a.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455"
+                hotelImage = "https://images.trvl-media.com/lodging/25000000/24470000/24463300/24463268/ec6c185a.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
+                roomId = 2002
             )
         )
     }

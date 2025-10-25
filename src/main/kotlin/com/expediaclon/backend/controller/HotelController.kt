@@ -39,7 +39,7 @@ class HotelController(
         @RequestParam city: String,
         @RequestParam passengerCount: Int
     ): ResponseEntity<List<HotelCardDto>> {
-        val hotels = hotelService.findAllHotelsByCity(city, passengerCount)
+        val hotels = hotelService.searchHotels(city, passengerCount)
         return ResponseEntity.ok(hotels)
     }
 

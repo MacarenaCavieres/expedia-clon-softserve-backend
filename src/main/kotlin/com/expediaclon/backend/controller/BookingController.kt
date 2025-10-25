@@ -1,13 +1,11 @@
 package com.expediaclon.backend.controller
 
 import com.expediaclon.backend.dto.BookingDetailDto
-import com.expediaclon.backend.dto.BookingRequest
-import com.expediaclon.backend.dto.BookingResponse
+import com.expediaclon.backend.dto.BookingRequestDto // Usa el DTO correcto para la entrada
+import com.expediaclon.backend.dto.BookingCreationResponse // Usa el DTO correcto para la respuesta de creación
 import com.expediaclon.backend.dto.UpdateStatusRequestDto
-import com.expediaclon.backend.model.Booking
 import com.expediaclon.backend.service.BookingService
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -22,84 +20,91 @@ class BookingController(
     private val bookingService: BookingService
 ) {
 
-    @Operation(summary = "Create a booking", description = "Creates a new hotel booking based on the request body.")
-    @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "201", description = "Booking created successfully"),
-            ApiResponse(responseCode = "400", description = "Invalid booking data")
-        ]
-    )
+    @Operation(summary = "Create a booking", description = "Creates a new hotel booking.")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "201", description = "Booking created successfully"),
+        ApiResponse(responseCode = "400", description = "Invalid booking data (e.g., room capacity exceeded, invalid dates)")
+    ])
     @PostMapping
-    fun createBooking(@RequestBody request: BookingRequest): ResponseEntity<Booking> {
-        try {
-            val savedReservation = bookingService.createBooking(request)
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedReservation)
-        } catch (e: NoSuchElementException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
-        } catch (e: IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
-        }
+    fun createBooking(@RequestBody request: BookingRequestDto): ResponseEntity<BookingCreationResponse> { // <-- Usa BookingRequestDto
+        // El GlobalExceptionHandler manejará las IllegalArgumentException devolviendo 400
+        val createdBooking = bookingService.createBooking(request)
+        val response = BookingCreationResponse(
+            id = createdBooking.id,
+            confirmationCode = createdBooking.confirmationCode
+        )
+        return ResponseEntity.status(HttpStatus.CREATED).body(response) // <-- Devuelve 201 Created
     }
 
-    // --- NUEVOS ENDPOINTS ---
-
-    // Obtiene todas las reservas.
-    @Operation(summary = "Get all bookings", description = "Retrieves all existing bookings.")
+    @Operation(summary = "Get all bookings", description = "Retrieves a list of all existing bookings.")
+    @ApiResponses(value = [ApiResponse(responseCode = "200", description = "Bookings retrieved successfully")])
     @GetMapping
     fun getAllBookings(): ResponseEntity<List<BookingDetailDto>> {
         val bookings = bookingService.getAllBookings()
         return ResponseEntity.ok(bookings)
     }
 
-    // Obtiene los detalles de una reserva específica.
-    @Operation(summary = "Get booking details", description = "Retrieves details of a specific booking by its ID.")
+    @Operation(summary = "Get booking details by ID", description = "Retrieves details of a specific booking.")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "200", description = "Booking details retrieved successfully"),
+        ApiResponse(responseCode = "404", description = "Booking not found for the given ID")
+    ])
     @GetMapping("/{bookingId}")
     fun getBookingDetails(@PathVariable bookingId: Long): ResponseEntity<BookingDetailDto> {
-        val bookingDetails = bookingService.getBookingDetails(bookingId)
-        return ResponseEntity.ok(bookingDetails)
-    }
-
-    // Actualizar una reserva
-    @Operation(summary = "Update a booking", description = "Updates a booking by ID.")
-    @PutMapping("/{bookingId}")
-    fun putReservation(
-        @PathVariable bookingId: Long,
-        @RequestBody requestDto: BookingRequest
-    ): ResponseEntity<Booking> {
-        try {
-            val updatedReservation = bookingService.updateReservation(bookingId, requestDto)
-            return ResponseEntity.ok(updatedReservation)
-        } catch (e: NoSuchElementException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
+        // Dejamos que el servicio lance excepción si no encuentra, y el handler la convierte a 400/404
+        try { // Opcional: Manejo específico para devolver 404 en lugar de 400 genérico
+            val bookingDetails = bookingService.getBookingDetails(bookingId)
+            return ResponseEntity.ok(bookingDetails)
         } catch (e: IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
+            return ResponseEntity.notFound().build()
         }
     }
 
-    // Cancela una reserva.
-    @Operation(summary = "Cancel a booking", description = "Cancels a booking by updating its status.")
-    @PatchMapping("/{bookingId}/status")
-    fun cancelBooking(
+    @Operation(summary = "Update a booking", description = "Updates details (guests, names, dates) of an existing booking.")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "200", description = "Booking updated successfully"),
+        ApiResponse(responseCode = "400", description = "Invalid data for update (e.g., capacity exceeded, invalid dates)"),
+        ApiResponse(responseCode = "404", description = "Booking not found for the given ID")
+    ])
+    @PutMapping("/{bookingId}")
+    fun updateBooking( // Renombrado de putReservation
         @PathVariable bookingId: Long,
-        @RequestBody request: UpdateStatusRequestDto
-    ): ResponseEntity<Booking> {
-        val cancelledBooking = bookingService.cancelBooking(bookingId, request.status)
-        return if (cancelledBooking != null) {
-            ResponseEntity.ok(cancelledBooking)
-        } else {
-            ResponseEntity.status(HttpStatus.NOT_FOUND).build()
-        }
+        // Reutilizamos BookingRequestDto, asumiendo que el frontend envía todos los datos para actualizar
+        @RequestBody request: BookingRequestDto
+    ): ResponseEntity<BookingDetailDto> { // <-- Devuelve BookingDetailDto
+        // Dejamos que el handler maneje los errores
+        val updatedBookingDto = bookingService.updateBooking(bookingId, request)
+        return ResponseEntity.ok(updatedBookingDto)
     }
 
-    @Operation(summary = "Delete a booking", description = "Deletes a booking by its ID.")
-    @DeleteMapping("/{bookingId}")
-    fun deleteReservationById(@PathVariable bookingId: Long): ResponseEntity<Unit> {
-        val wasDeleted = bookingService.deleteReservation(bookingId)
+    @Operation(summary = "Update booking status (e.g., Cancel)", description = "Updates the status of a specific booking.")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "200", description = "Booking status updated successfully"),
+        ApiResponse(responseCode = "400", description = "Invalid status provided or transition not allowed"),
+        ApiResponse(responseCode = "404", description = "Booking not found")
+    ])
+    @PatchMapping("/{bookingId}/status") // Usa PATCH para estado
+    fun updateBookingStatus( // Renombrado de cancelBooking para ser más general
+        @PathVariable bookingId: Long,
+        @RequestBody request: UpdateStatusRequestDto // DTO específico para estado
+    ): ResponseEntity<BookingDetailDto> { // <-- Devuelve BookingDetailDto
+        // Dejamos que el handler maneje los errores
+        val updatedBookingDto = bookingService.updateBookingStatus(bookingId, request.status)
+        return ResponseEntity.ok(updatedBookingDto)
+    }
 
+    @Operation(summary = "Delete a booking", description = "Deletes a specific booking by its ID.")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "204", description = "Booking deleted successfully"),
+        ApiResponse(responseCode = "404", description = "Booking not found")
+    ])
+    @DeleteMapping("/{bookingId}")
+    fun deleteBooking(@PathVariable bookingId: Long): ResponseEntity<Unit> { // Renombrado de deleteReservationById
+        val wasDeleted = bookingService.deleteBooking(bookingId)
         return if (wasDeleted) {
-            ResponseEntity.noContent().build()
+            ResponseEntity.noContent().build() // 204 No Content
         } else {
-            ResponseEntity.notFound().build()
+            ResponseEntity.notFound().build() // 404 Not Found
         }
     }
 }

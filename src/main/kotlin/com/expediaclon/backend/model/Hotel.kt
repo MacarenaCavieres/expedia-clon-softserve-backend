@@ -33,10 +33,6 @@ data class Hotel(
 
     val comment: String,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "destination_id", nullable = false)
-    val destination: Destination,
-
     @OneToMany(mappedBy = "hotel", fetch = FetchType.LAZY)
     val rooms: List<RoomType> = emptyList()
 )

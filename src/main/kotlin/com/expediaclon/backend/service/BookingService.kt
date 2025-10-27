@@ -45,7 +45,7 @@ class BookingService(
         logger.info("Iniciando creación de reserva para la sesión: ${request.sessionId}")
 
         // 1. Validación de Huéspedes (usamos totalGuests que viene del frontend)
-        val passengerCount = request.totalGuests
+        val passengerCount = request.passengerCount
         if (passengerCount <= 0) {
             logger.warn("Intento de reserva con totalGuests <= 0")
             throw IllegalArgumentException("El número de huéspedes (totalGuests) debe ser mayor que 0.")
@@ -145,7 +145,7 @@ class BookingService(
         val existingBooking = findBookingByIdOrThrow(bookingId)
 
         // 2. Valida la capacidad con el nuevo número de huéspedes
-        val passengerCount = request.totalGuests // Usamos totalGuests del request
+        val passengerCount = request.passengerCount // Usamos totalGuests del request
         if (existingBooking.roomType.capacity < passengerCount) {
             throw IllegalArgumentException("La capacidad de la habitación (${existingBooking.roomType.capacity}) es menor que el número de huéspedes ($passengerCount).")
         }
@@ -288,7 +288,7 @@ class BookingService(
             id = booking.id,
             checkInDate = booking.checkInDate,
             checkOutDate = booking.checkOutDate,
-            totalGuests = booking.passengerCount, // Mapea passengerCount a totalGuests para el frontend
+            passengerCount = booking.passengerCount, // Mapea passengerCount a totalGuests para el frontend
             guestNames = booking.guestNames,
             totalPrice = booking.totalPrice,
             status = booking.status.name, // Envía el nombre del enum como String (ej. "CONFIRMED")

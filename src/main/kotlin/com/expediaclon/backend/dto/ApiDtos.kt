@@ -50,7 +50,7 @@ data class HotelDetailDto(
 data class BookingRequestDto(
     val sessionId: UUID,       // Identificador de sesión para invitados
     // Usamos 'totalGuests' porque es lo que envía el frontend. El servicio lo mapeará a passengerCount.
-    val totalGuests: Int,
+    val passengerCount: Int,
     val roomId: Long,          // ID del RoomType a reservar (coincide con frontend)
     val checkInDate: LocalDate, // Coincide con frontend
     val checkOutDate: LocalDate, // Coincide con frontend
@@ -63,7 +63,7 @@ data class BookingDetailDto(
     val id: Long, // No nullable, coincide con la entidad
     val checkInDate: LocalDate,
     val checkOutDate: LocalDate,
-    val totalGuests: Int, // Mantenemos este nombre para coincidir con frontend
+    val passengerCount: Int, // Mantenemos este nombre para coincidir con frontend
     val guestNames: String,
     val totalPrice: BigDecimal, // BigDecimal
     // Enviamos el nombre del enum como String, Zod en frontend espera String.

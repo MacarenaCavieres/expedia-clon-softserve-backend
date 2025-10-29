@@ -1,0 +1,105 @@
+enum BookingStatus {
+    PENDING
+    CONFIRMED
+    CANCELLED
+}
+
+type RoomType {
+    id: ID!
+    name: String!
+    capacity: Int!
+    bedType: String!
+    pricePerNight: String!
+    imageUrl: String!
+    description: String
+    totalInventory: Int!
+}
+
+type Booking {
+    id: ID!
+    passengerCount: Int!
+    guestNames: String!
+    checkInDate: String!
+    checkOutDate: String!
+    confirmationCode: String!
+    totalPrice: Float!
+    status: BookingStatus!
+    hotelName: String
+    hotelCity: String
+    hotelImage: String
+    roomId: ID!
+#    user: User!
+}
+
+input BookingInput {
+    passengerCount: Int!
+    guestNames: String!
+    roomId: ID!
+    checkInDate: String!
+    checkOutDate: String!
+}
+
+input UpdateStatusInput {
+    bookingId: ID!
+    status: BookingStatus!
+}
+
+# --- (Hotel) ---
+type HotelCard {
+    id: ID!
+    name: String!
+    city: String!
+    mainImage: String
+    pricePerNight: String!
+    rating: Float!
+    comment:String
+}
+
+type HotelDetail {
+    id: ID!
+    name: String!
+    address: String!
+    city: String!
+    description: String!
+    latitude: Float!
+    longitude: Float!
+    images: [String!]!
+    rating: Float!
+    comment: String
+    rooms: [RoomType!]!
+}
+# User
+type User {
+    id: ID!
+    email: String!
+    phone:String!
+    name: String!
+    lastname: String!
+    createdAt: String
+    updatedAt: String
+#    bookings: [Booking!]
+}
+
+# --- Queries (Consultas) ---
+type Query {
+    allBookings: [Booking!]!
+    bookingById(id: ID!): Booking
+
+    #  hoteles
+    searchHotels(
+        city: String!,
+        passengerCount: Int!
+    ): [HotelCard!]!
+
+    # hotel
+    hotelDetailsById(
+        id: ID!
+    ): HotelDetail
+}
+
+type Mutation {
+    createBooking(input: BookingInput!): Booking!
+    updateBooking(id: ID!, input: BookingInput!): Booking!
+    updateBookingStatus(input: UpdateStatusInput!): Booking!
+    deleteBooking(id: ID!): Boolean!
+}

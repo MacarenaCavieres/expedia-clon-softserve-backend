@@ -11,25 +11,17 @@ import java.util.UUID // Importación necesaria
 @Table(name = "bookings")
 data class Booking(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0, // Es mejor usar Long no nullable y dejar 0 como valor por defecto
+    val id: Long = 0,
 
-    // Identificador de la sesión del usuario invitado.
-    @Column(nullable = false)
-    val sessionId: UUID,
-
-    // Número de pasajeros para esta reserva específica.
     @Column(nullable = false)
     val passengerCount: Int,
 
-    // Nombres de los huéspedes (separados por coma o similar).
     @Column(nullable = false)
     val guestNames: String,
 
-    // Relación muchos-a-uno con el tipo de habitación reservado.
-    // FetchType.LAZY es importante para el rendimiento.
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_type_id", nullable = false) // Define la columna FK
-    val roomType: RoomType, // Relación con la entidad RoomType
+    @JoinColumn(name = "room_type_id", nullable = false)
+    val roomType: RoomType,
 
     // Relación futura con vuelo (opcional)
     // @ManyToOne(fetch = FetchType.LAZY)
@@ -42,20 +34,21 @@ data class Booking(
     @Column(nullable = false)
     val checkOutDate: LocalDate,
 
-    // Código único generado para la confirmación.
     @Column(nullable = false, unique = true)
     val confirmationCode: String,
 
-    // Precio total calculado, usando BigDecimal para precisión.
     @Column(nullable = false, precision = 10, scale = 2)
     val totalPrice: BigDecimal,
 
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "user_id", nullable = false)
+//    val user: User,
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    var status: BookingStatus = BookingStatus.PENDING, // Valor por defecto PENDING
+    var status: BookingStatus = BookingStatus.PENDING,
 
-    @Column(nullable = false, updatable = false) // No actualizable
+    @Column(nullable = false, updatable = false)
     val createdAt: Instant = Instant.now()
 
-    // Eliminados: totalGuests (redundante), hotelName, hotelCity, hotelImage, roomId (reemplazado por roomType)
 )

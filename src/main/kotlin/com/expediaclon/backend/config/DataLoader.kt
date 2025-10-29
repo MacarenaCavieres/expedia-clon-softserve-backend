@@ -4,6 +4,7 @@ import java.util.UUID
 import com.expediaclon.backend.model.Booking
 import com.expediaclon.backend.model.Hotel
 import com.expediaclon.backend.model.RoomType
+import com.expediaclon.backend.model.User
 import com.expediaclon.backend.model.enums.BookingStatus
 import com.expediaclon.backend.repository.BookingRepository
 import com.expediaclon.backend.repository.HotelRepository
@@ -31,6 +32,14 @@ class DataLoader(
     }
 
     private fun loadData() {
+        val userCreator = User(
+            id = 1,
+            email = "creator@example.com",
+            phone = "123456789",
+            password = "hashed_password",
+            name = "Test",
+            lastname = "Creator"
+        )
 
         // --- Hoteles y Habitaciones para París ---
         val hotelParis1 = hotelRepository.save(
@@ -41,7 +50,7 @@ class DataLoader(
                 comment = "Exceptional",
                 latitude = 48.8437,
                 longitude = 2.3276,
-                description = "Luxembourg Gardens are just a stroll away...",
+                description = "Luxembourg Gardens are just a stroll away from this charming Parisian stay. Relax in the sauna, enjoy buffet breakfast, or rent bikes to explore. With an airport shuttle and babysitting services on site, you can unwind with ease.",
                 address = "9 Rue Littré, 75006 Paris, Francia",
                 images = mutableListOf(
                     "https://images.trvl-media.com/lodging/1000000/10000/1700/1688/a19f6282.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
@@ -97,7 +106,7 @@ class DataLoader(
                 comment = "Very Good",
                 latitude = 48.8656,
                 longitude = 2.3364,
-                description = "Elegant and cozy...",
+                description = "Elegant and cozy, this property offers a serene retreat with quiet inner court views and a welcoming lounge area. Enjoy a minibar, daily snacks, and access to sister hotels' drink bars, all within walking distance to the Louvre.",
                 address = "63 Rue De Richelieu, Paris",
                 images = mutableListOf(
                     "https://images.trvl-media.com/lodging/1000000/60000/53600/53587/bbf26628.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
@@ -153,7 +162,7 @@ class DataLoader(
                 comment = "Excellent",
                 latitude = 48.8785,
                 longitude = 2.2965,
-                description = "Superb location...",
+                description = "Superb location and stylish decor define this beautiful property, surrounded by stunning scenery and easily accessible to top attractions. Enjoy large, gorgeous rooms and exceptional service, with staff dedicated to making every detail perfect for your stay.",
                 address = "37 Av. Hoche, 75008 Paris, Francia",
                 images = mutableListOf(
                     "https://images.trvl-media.com/lodging/1000000/20000/14600/14582/63c4817a.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
@@ -211,7 +220,7 @@ class DataLoader(
                 comment = "Very Good",
                 latitude = 41.8986,
                 longitude = 12.4939,
-                description = "Modern design...",
+                description = "Modern design meets convenience, just steps from Rome's iconic attractions and train stations. Unwind at the rooftop bar with stunning views, or stay active in the well-equipped gym.",
                 address = "Via Torino, 6, 00184 Rome RM, Italy",
                 images = mutableListOf(
                     "https://images.trvl-media.com/lodging/25000000/24470000/24463300/24463268/ec6c185a.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
@@ -267,7 +276,7 @@ class DataLoader(
                 comment = "Exceptional",
                 latitude = 41.9037,
                 longitude = 12.4897,
-                description = "Rome’s iconic landmarks...",
+                description = "Rome’s iconic landmarks are just a stroll away from this stylish hotel. Treat yourself to a rooftop terrace, Italian cuisine, and rejuvenating spa treatments. A buffet breakfast, limo service, and multilingual staff ensure a seamless stay amidst the Eternal City’s timeless charm.",
                 address = "Via Nazionale, 22, 00184 Rome RM, Italy",
                 images = mutableListOf(
                     "https://images.trvl-media.com/lodging/1000000/50000/45900/45856/dccbfa6d.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
@@ -285,7 +294,7 @@ class DataLoader(
                 capacity = 2,
                 bedType = "QUEEN",
                 pricePerNight = BigDecimal("1190.00"),
-                description = "Elegant 4-star hotel...",
+                description = "Elegant 4-star hotel in the heart of Rome on the Via Nazionale.",
                 imageUrl = "https://images.trvl-media.com/lodging/1000000/50000/45900/45856/f42fba1f.jpg?impolicy=fcrop&w=1200&h=800&quality=medium",
                 totalInventory = 15
             )
@@ -323,7 +332,7 @@ class DataLoader(
                 comment = "Excellent",
                 latitude = 41.8986,
                 longitude = 12.4769,
-                description = "Steps away from Rome's iconic Pantheon...",
+                description = "Steps away from Rome's iconic Pantheon, this hotel offers a serene retreat amidst the city's vibrant attractions. Savor Michelin-star dining and breathtaking rooftop views, creating unforgettable moments in the heart of Rome.",
                 address = "Via di S. Chiara, 4/A, 00186 Rome RM, Italy",
                 images = mutableListOf(
                     "https://images.trvl-media.com/lodging/24000000/23980000/23972600/23972532/1b1cd8f0.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
@@ -365,7 +374,7 @@ class DataLoader(
                 capacity = 2,
                 bedType = "QUEEN",
                 pricePerNight = BigDecimal("1400.00"),
-                description = "Unparalleled luxury with views...",
+                description = "Unparalleled luxury with views of St. Peter's Basilica.",
                 imageUrl = "https://images.trvl-media.com/lodging/24000000/23980000/23972600/23972532/36b3de8b.jpg?impolicy=fcrop&w=1200&h=800&quality=medium",
                 totalInventory = 8
             )
@@ -381,7 +390,7 @@ class DataLoader(
                 comment = "Wonderful",
                 latitude = 40.7520,
                 longitude = -73.9935,
-                description = "In the heart of Manhattan...",
+                description = "In the heart of Manhattan, discover a haven near iconic Macy's. Enjoy full breakfast, explore with tour assistance, and unwind at the 24-hour gym or on-site bar. With three restaurants to choose from, this urban gem is perfect for those who crave excitement and convenience.",
                 address = "481 8th Ave, New York, NY 10001, EE. UU.",
                 images = mutableListOf(
                     "https://images.trvl-media.com/lodging/1000000/50000/41100/41009/cb62f2a4.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
@@ -437,7 +446,7 @@ class DataLoader(
                 comment = "Excellent",
                 latitude = 40.7646,
                 longitude = -73.9749,
-                description = "Stunning architecture...",
+                description = "Stunning architecture and an iconic, serene ambiance define this luxurious property near Central Park. Enjoy elegantly decorated rooms, impeccable service, and a perfect location for exploring the city's finest shopping and dining.",
                 address = "768 5th Ave, New York, NY 10019, EE. UU",
                 images = mutableListOf(
                     "https://images.trvl-media.com/lodging/1000000/30000/28100/28044/2549538f.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
@@ -493,7 +502,7 @@ class DataLoader(
                 comment = "Very Good",
                 latitude = 40.7407,
                 longitude = -74.0084,
-                description = "Tennis anyone?...",
+                description = "Tennis anyone? This stylish gem near the Whitney Museum of American Art serves up a full breakfast, 4 bars, and a 24-hour gym. Unwind with concierge services or browse the gift shop. When you need some fresh air, step out onto the terrace or stroll over to Little Island and The High Line Park.",
                 address = "848 Washington St, New York, NY 10014, EE. UU",
                 images = mutableListOf(
                     "https://images.trvl-media.com/lodging/11000000/10640000/10630200/10630123/94886612.jpg?impolicy=resizecrop&ra=fit&rw=455&rh=455",
@@ -511,7 +520,7 @@ class DataLoader(
                 capacity = 2,
                 bedType = "QUEEN",
                 pricePerNight = BigDecimal("1380.00"),
-                description = "A small, efficient room...",
+                description = "A small, efficient room in the heart of the city.",
                 imageUrl = "https://images.trvl-media.com/lodging/11000000/10640000/10630200/10630123/bdf7b4bc.jpg?impolicy=fcrop&w=1200&h=800&quality=medium",
                 totalInventory = 20
             )
@@ -535,42 +544,38 @@ class DataLoader(
                 capacity = 1,
                 bedType = "SINGLE",
                 pricePerNight = BigDecimal("1300.00"),
-                description = "Two connecting rooms...",
+                description = "Two connecting rooms for larger groups.",
                 imageUrl = "https://images.trvl-media.com/lodging/11000000/10640000/10630200/10630123/5de54bd7.jpg?impolicy=fcrop&w=1200&h=800&quality=medium",
                 totalInventory = 10
             )
         ) //
         // --- Cargar Reservas de Muestra (Corregido para coincidir con Booking.kt) ---
 
-        // Reserva Cancelada
         bookingRepository.save(
             Booking(
-                sessionId = UUID.randomUUID(), // ID de sesión para invitado
                 passengerCount = 2,
                 guestNames = "Alice Johnson, Bob Johnson",
-                roomType = roomParis1_1, // Referencia a la entidad RoomType guardada
+                roomType = roomParis1_1,
                 checkInDate = LocalDate.of(2025, 11, 10),
                 checkOutDate = LocalDate.of(2025, 11, 15),
-                // Calcular precio basado en la habitación y noches
                 totalPrice = roomParis1_1.pricePerNight.multiply(BigDecimal(5)),
-                confirmationCode = "CANCEL01", // Código único
-                status = BookingStatus.CANCELED // Usar el enum
+                confirmationCode = "CANCEL01",
+                status = BookingStatus.CANCELLED,
+//                user = userCreator
             )
         )
 
-        // Reserva Pendiente (o Confirmada)
         bookingRepository.save(
             Booking(
-                sessionId = UUID.randomUUID(),
                 passengerCount = 1,
                 guestNames = "Charlie Brown",
-                roomType = roomRoma1_1, // Referencia a la entidad RoomType guardada
+                roomType = roomRoma1_1,
                 checkInDate = LocalDate.of(2026, 1, 20),
                 checkOutDate = LocalDate.of(2026, 1, 25),
-                // Calcular precio basado en la habitación y noches
                 totalPrice = roomRoma1_1.pricePerNight.multiply(BigDecimal(5)),
-                confirmationCode = "PENDING1", // Código único
-                status = BookingStatus.PENDING // O CONFIRMED
+                confirmationCode = "PENDING1",
+                status = BookingStatus.PENDING,
+//                user = userCreator
             )
         )
     }

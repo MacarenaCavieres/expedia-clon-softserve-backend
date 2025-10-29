@@ -30,8 +30,8 @@ data class User(
     @Column(nullable = false)
     val role: UserRole = UserRole.USER,
 
-//    @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-//    val bookings: MutableSet<Booking> = mutableSetOf(),
+    @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+    val bookings: MutableSet<Booking> = mutableSetOf(),
 
     @Column(nullable = false)
     val createdAt: Instant = Instant.now(),

@@ -84,7 +84,7 @@ class BookingService(
             totalPrice = totalPrice,
             confirmationCode = confirmationCode,
             status = BookingStatus.PENDING,
-//            user = userCreator
+            user = userCreator
         )
 
         val savedBooking = bookingRepository.save(newBooking)

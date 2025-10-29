@@ -9,6 +9,7 @@ import com.expediaclon.backend.model.enums.BookingStatus
 import com.expediaclon.backend.repository.BookingRepository
 import com.expediaclon.backend.repository.HotelRepository
 import com.expediaclon.backend.repository.RoomTypeRepository
+import com.expediaclon.backend.repository.UserRepository
 import org.springframework.boot.CommandLineRunner
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
@@ -17,13 +18,12 @@ import java.time.LocalDate
 @Component
 class DataLoader(
     private val hotelRepository: HotelRepository,
-    // Renombrado para consistencia con la interfaz
     private val roomTypeRepository: RoomTypeRepository,
-    private val bookingRepository: BookingRepository
+    private val bookingRepository: BookingRepository,
+    private val userRepository: UserRepository
 ) : CommandLineRunner {
 
     override fun run(vararg args: String?) {
-        // Verifica si la tabla de hoteles está vacía
         if (hotelRepository.count() == 0L) {
             println("Loading sample data...")
             loadData()
@@ -32,15 +32,6 @@ class DataLoader(
     }
 
     private fun loadData() {
-        val userCreator = User(
-            id = 1,
-            email = "creator@example.com",
-            phone = "123456789",
-            password = "hashed_password",
-            name = "Test",
-            lastname = "Creator"
-        )
-
         // --- Hoteles y Habitaciones para París ---
         val hotelParis1 = hotelRepository.save(
             Hotel(
@@ -548,7 +539,18 @@ class DataLoader(
                 imageUrl = "https://images.trvl-media.com/lodging/11000000/10640000/10630200/10630123/5de54bd7.jpg?impolicy=fcrop&w=1200&h=800&quality=medium",
                 totalInventory = 10
             )
-        ) //
+        )
+
+        // cargar el usuario
+
+        val userCreator = userRepository.save(User(
+            email = "creator@example.com",
+            phone = "123456789",
+            password = "hashed_password",
+            name = "Test",
+            lastname = "Creator"
+        ))
+
         // --- Cargar Reservas de Muestra (Corregido para coincidir con Booking.kt) ---
 
         bookingRepository.save(
@@ -561,7 +563,7 @@ class DataLoader(
                 totalPrice = roomParis1_1.pricePerNight.multiply(BigDecimal(5)),
                 confirmationCode = "CANCEL01",
                 status = BookingStatus.CANCELLED,
-//                user = userCreator
+                user = userCreator
             )
         )
 
@@ -575,7 +577,7 @@ class DataLoader(
                 totalPrice = roomRoma1_1.pricePerNight.multiply(BigDecimal(5)),
                 confirmationCode = "PENDING1",
                 status = BookingStatus.PENDING,
-//                user = userCreator
+                user = userCreator
             )
         )
     }

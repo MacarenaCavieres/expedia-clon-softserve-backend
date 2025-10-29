@@ -40,9 +40,9 @@ data class Booking(
     @Column(nullable = false, precision = 10, scale = 2)
     val totalPrice: BigDecimal,
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "user_id", nullable = false)
-//    val user: User,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    val user: User,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

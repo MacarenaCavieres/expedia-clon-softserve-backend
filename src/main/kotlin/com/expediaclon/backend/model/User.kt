@@ -2,6 +2,8 @@ package com.expediaclon.backend.model
 
 import com.expediaclon.backend.model.enums.UserRole
 import jakarta.persistence.*
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.Size
 
 import java.time.Instant
 
@@ -18,12 +20,14 @@ data class User(
     val lastname: String,
 
     @Column(nullable = false, unique = true)
+    @field:Email(message = "Must be a valid email format")
     val email: String,
 
     @Column(nullable = false)
     val phone: String,
 
     @Column(nullable = false)
+    @field:Size(min = 8, message = "The password must be at least 8 characters long")
     val password: String,
 
     @Enumerated(EnumType.STRING)

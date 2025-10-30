@@ -3,7 +3,6 @@ package com.expediaclon.backend.dto
 import com.expediaclon.backend.model.enums.BookingStatus
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.UUID
 
 // --- DTOs para Hoteles ---
 data class HotelCardDto(
@@ -41,7 +40,6 @@ data class HotelDetailDto(
 )
 
 // --- DTOs para Reservas (Bookings) ---
-
 data class BookingRequestDto(
     val passengerCount: Int,
     val roomId: Long,
@@ -72,4 +70,13 @@ data class UpdateStatusRequestDto(
 data class BookingCreationResponse(
     val id: Long,
     val confirmationCode: String
+)
+
+// --- DTOs para Usuarios (Users) ---
+data class UserRequestDto(
+    val name: String,
+    val lastname: String,
+    val email: String,
+    val phone: String,
+    val password: String
 )

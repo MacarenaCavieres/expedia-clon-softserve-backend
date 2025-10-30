@@ -93,6 +93,11 @@ type TokenPair{
     refreshToken: String!
 }
 
+input PasswordResetInput {
+    token: String!
+    newPassword: String!
+}
+
 # --- Queries (Consultas) ---
 type Query {
     allBookings: [Booking!]!
@@ -119,4 +124,6 @@ type Mutation {
     #    user
     registerUser(input:UserInput! ): User!
     loginUser(email:String,password:String): TokenPair
+    forgotPassword(email: String!): Boolean!
+    resetPassword(input: PasswordResetInput!): User!
 }

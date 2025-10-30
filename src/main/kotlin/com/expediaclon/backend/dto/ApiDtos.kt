@@ -80,3 +80,13 @@ data class UserRequestDto(
     val phone: String,
     val password: String
 )
+
+data class TokenPair(
+    val accessToken: String,
+    val refreshToken: String
+)
+
+data class PasswordResetRequest(
+    val token: String,
+    val newPassword: String
+)

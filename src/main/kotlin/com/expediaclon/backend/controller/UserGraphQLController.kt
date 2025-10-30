@@ -1,5 +1,7 @@
 package com.expediaclon.backend.controller
 
+import com.expediaclon.backend.dto.PasswordResetRequest
+import com.expediaclon.backend.dto.TokenPair
 import com.expediaclon.backend.dto.UserRequestDto
 import com.expediaclon.backend.model.User
 import com.expediaclon.backend.service.UserService
@@ -18,12 +20,23 @@ class UserGraphQLController(private val userService: UserService) {
     }
 
     @MutationMapping
-    fun loginUser(@Argument email: String, @Argument password:String): UserService.TokenPair{
+    fun loginUser(@Argument email: String, @Argument password:String): TokenPair{
         return userService.login(email,password)
     }
 
     @MutationMapping
-    fun refreshToken(@Argument input: RefreshRequest):UserService.TokenPair{
+    fun refreshToken(@Argument input: RefreshRequest):TokenPair{
         return userService.refresh(input.refreshToken)
+    }
+
+    @MutationMapping
+    fun forgotPassword(@Argument email: String): Boolean {
+        return userService.requestPasswordReset(email)
+    }
+
+    // Nuevo: Restablecer la contraseña
+    @MutationMapping
+    fun resetPassword(@Argument input: PasswordResetRequest): User {
+        return userService.resetPassword(input)
     }
 }

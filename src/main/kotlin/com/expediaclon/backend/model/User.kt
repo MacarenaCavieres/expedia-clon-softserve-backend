@@ -28,7 +28,7 @@ data class User(
 
     @Column(nullable = false)
     @field:Size(min = 8, message = "The password must be at least 8 characters long")
-    val password: String,
+    var password: String,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

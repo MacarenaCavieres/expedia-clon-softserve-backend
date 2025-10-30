@@ -15,6 +15,7 @@ class JwtService(@Value("\${jwt.secret}") private val jwtSecret: String) {
     private val secretKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtSecret))
     private val accessTokenValidityMs = 60L * 60L * 1000L // 60 minutos
     val refreshTokenValidityMS = 30L * 24 * 60 * 60 * 1000L // 30 dias
+    val resetPasswordTokenValidityMS = 15L * 60L * 1000L // 15 minutos
 
     private fun generateToken(
         userId: String, type: String, expiry: Long
@@ -33,6 +34,10 @@ class JwtService(@Value("\${jwt.secret}") private val jwtSecret: String) {
         return generateToken(userId, "refresh", refreshTokenValidityMS)
     }
 
+    fun generateResetPasswordToken(userId: String): String {
+        return generateToken(userId, "reset", resetPasswordTokenValidityMS)
+    }
+
     fun validateAccessToken(token: String): Boolean {
         val claims = parseAllClaims(token) ?: return false
         val tokenType = claims["type"] as? String ?: return false
@@ -44,6 +49,12 @@ class JwtService(@Value("\${jwt.secret}") private val jwtSecret: String) {
         val claims = parseAllClaims(token) ?: return false
         val tokenType = claims["type"] as? String ?: return false
         return tokenType == "refresh"
+    }
+
+    fun validateResetPasswordToken(token: String): Boolean {
+        val claims = parseAllClaims(token) ?: return false
+        val tokenType = claims["type"] as? String ?: return false
+        return tokenType == "reset"
     }
 
     // Authorization: Bearer <token>

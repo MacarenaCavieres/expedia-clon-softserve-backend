@@ -28,7 +28,7 @@ type Booking {
     hotelCity: String
     hotelImage: String
     roomId: ID!
-#    user: User!
+    user: User!
 }
 
 input BookingInput {
@@ -77,7 +77,20 @@ type User {
     lastname: String!
     createdAt: String
     updatedAt: String
-#    bookings: [Booking!]
+    bookings: [Booking!]
+}
+
+input UserInput{
+    name:String!
+    lastname: String!
+    email: String!
+    phone: String!
+    password: String!
+}
+
+type TokenPair{
+    accessToken: String!
+    refreshToken: String!
 }
 
 # --- Queries (Consultas) ---
@@ -97,9 +110,13 @@ type Query {
     ): HotelDetail
 }
 
+# --- Mutations ---
 type Mutation {
     createBooking(input: BookingInput!): Booking!
     updateBooking(id: ID!, input: BookingInput!): Booking!
     updateBookingStatus(input: UpdateStatusInput!): Booking!
     deleteBooking(id: ID!): Boolean!
+    #    user
+    registerUser(input:UserInput! ): User!
+    loginUser(email:String,password:String): TokenPair
 }

@@ -2,15 +2,21 @@ package com.expediaclon.backend.service
 
 import com.expediaclon.backend.dto.BookingDetailDto
 import com.expediaclon.backend.dto.BookingRequestDto // Usa el DTO correcto
+import com.expediaclon.backend.dto.BookingResponseDto
+import com.expediaclon.backend.dto.UserDtoForBooking
 import com.expediaclon.backend.model.Booking
 import com.expediaclon.backend.model.User
 import com.expediaclon.backend.model.enums.BookingStatus
 import com.expediaclon.backend.repository.BookingRepository
 import com.expediaclon.backend.repository.RoomTypeRepository
+import com.expediaclon.backend.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.HttpStatus
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.server.ResponseStatusException
 import java.math.BigDecimal
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -27,22 +33,22 @@ import java.util.UUID
 @Service
 class BookingService(
     private val bookingRepository: BookingRepository,
-    private val roomTypeRepository: RoomTypeRepository
+    private val roomTypeRepository: RoomTypeRepository,
+    private val userRepository: UserRepository
 ) {
-    // Inicializa el logger para esta clase, permitiendo registrar eventos y errores.
-    private val logger = LoggerFactory.getLogger(BookingService::class.java)
 
-    /**
-     * Crea una nueva reserva (Booking) basada en la solicitud.
-     * Realiza validaciones de capacidad, fechas y calcula el precio total.
-     *
-     * @param request El DTO [BookingRequestDto] con los datos de la reserva.
-     * @return La entidad [Booking] recién creada y guardada.
-     * @throws IllegalArgumentException Si los datos son inválidos (huéspedes <= 0,
-     * habitación no encontrada, capacidad excedida, fechas inválidas).
-     */
     @Transactional
-    fun createBooking(request: BookingRequestDto): Booking {
+    fun createBooking(request: BookingRequestDto): BookingResponseDto {
+        val authentication = SecurityContextHolder.getContext().authentication
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated")
+        val userIdString = authentication.principal.toString()
+
+        val userId = userIdString.toLongOrNull()
+            ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid user ID in context")
+
+        val user = userRepository.findById(userId).orElseThrow {
+            ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
+        }
 
         val passengerCount = request.passengerCount
         if (passengerCount <= 0) {
@@ -64,17 +70,6 @@ class BookingService(
         }
         val totalPrice = roomType.pricePerNight.multiply(BigDecimal.valueOf(numberOfNights))
 
-        val confirmationCode = generateConfirmationCode()
-
-        val userCreator = User(
-            id = 1,
-            email = "creator@example.com",
-            phone = "123456789",
-            password = "hashed_password",
-            name = "Test",
-            lastname = "Creator"
-        )
-
         val newBooking = Booking(
             passengerCount = passengerCount,
             guestNames = request.guestNames,
@@ -82,50 +77,56 @@ class BookingService(
             checkInDate = request.checkInDate,
             checkOutDate = request.checkOutDate,
             totalPrice = totalPrice,
-            confirmationCode = confirmationCode,
             status = BookingStatus.PENDING,
-            user = userCreator
+            user = user
         )
 
         val savedBooking = bookingRepository.save(newBooking)
-        return savedBooking
+
+        val bookingEntity = bookingRepository.findById(savedBooking.id)
+            .orElseThrow {
+                ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Booking created but could not be retrieved.")
+            }
+
+        return mapToBookingResponseDto(bookingEntity)
     }
 
-    /**
-     * Obtiene una lista de todas las reservas existentes, mapeadas a [BookingDetailDto].
-     *
-     * @return Lista de [BookingDetailDto].
-     */
-    @Transactional(readOnly = true) // Transacción optimizada para solo lectura.
-    fun getAllBookings(): List<BookingDetailDto> {
-        return bookingRepository.findAll().map { mapToBookingDetailDto(it) }
-    }
-
-    /**
-     * Obtiene los detalles de una reserva específica por su ID.
-     *
-     * @param bookingId El ID de la reserva a buscar.
-     * @return El [BookingDetailDto] correspondiente.
-     * @throws IllegalArgumentException Si la reserva no se encuentra.
-     */
     @Transactional(readOnly = true)
-    fun getBookingDetails(bookingId: Long): BookingDetailDto {
-        val booking = findBookingByIdOrThrow(bookingId)
-        return mapToBookingDetailDto(booking)
+    fun getAllBookingsByUser(): List<BookingResponseDto> {
+        val authentication = SecurityContextHolder.getContext().authentication
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated")
+        val userIdString = authentication.principal.toString()
+
+        val userId = userIdString.toLongOrNull()
+            ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid user ID in context")
+
+        return bookingRepository.findBookingsByUserId(userId).map { mapToBookingResponseDto(it) }
     }
 
-    /**
-     * Actualiza una reserva existente (fechas, huéspedes, nombres).
-     * No permite cambiar el tipo de habitación (roomId).
-     *
-     * @param bookingId El ID de la reserva a actualizar.
-     * @param request El DTO [BookingRequestDto] con los nuevos datos.
-     * @return El [BookingDetailDto] de la reserva actualizada.
-     * @throws IllegalArgumentException Si la reserva no se encuentra, la capacidad es excedida o las fechas son inválidas.
-     */
+    @Transactional(readOnly = true)
+    fun getBookingDetails(bookingId: Long): BookingResponseDto {
+        val booking = findBookingByIdOrThrow(bookingId)
+        return mapToBookingResponseDto(booking)
+    }
+
+
     @Transactional
-    fun updateBooking(bookingId: Long, request: BookingRequestDto): BookingDetailDto {
+    fun updateBooking(bookingId: Long, request: BookingRequestDto): BookingResponseDto {
+        val authentication = SecurityContextHolder.getContext().authentication
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated")
+        val userIdString = authentication.principal.toString()
+
+        val userId = userIdString.toLongOrNull()
+            ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid user ID in context")
+
         val existingBooking = findBookingByIdOrThrow(bookingId)
+
+        if (existingBooking.user.id != userId) {
+            throw ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "User is not authorized to update this booking."
+            )
+        }
 
         val passengerCount = request.passengerCount
         if (existingBooking.roomType.capacity < passengerCount) {
@@ -149,58 +150,61 @@ class BookingService(
         )
 
         val savedBooking = bookingRepository.save(updatedBooking)
-        return mapToBookingDetailDto(savedBooking)
+        return mapToBookingResponseDto(savedBooking)
     }
 
-    /**
-     * Actualiza únicamente el estado de una reserva (ej. de CONFIRMED a CANCELLED).
-     *
-     * @param bookingId El ID de la reserva a modificar.
-     * @param newStatus El nuevo [BookingStatus] a aplicar.
-     * @return El [BookingDetailDto] de la reserva actualizada.
-     * @throws IllegalArgumentException Si la reserva no se encuentra.
-     */
     @Transactional
-    fun updateBookingStatus(bookingId: Long, newStatus: BookingStatus): BookingDetailDto {
+    fun updateBookingStatus(bookingId: Long, newStatus: BookingStatus): BookingResponseDto {
+        val authentication = SecurityContextHolder.getContext().authentication
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated")
+        val userIdString = authentication.principal.toString()
+
+        val userId = userIdString.toLongOrNull()
+            ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid user ID in context")
+
         val booking = findBookingByIdOrThrow(bookingId)
+
+        if (booking.user.id != userId) {
+            throw ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "User is not authorized to update this booking."
+            )
+        }
+
         if (booking.status == newStatus) {
-            return mapToBookingDetailDto(booking)
+            return mapToBookingResponseDto(booking)
         }
 
         val updatedBooking = booking.copy(status = newStatus)
         val savedBooking = bookingRepository.save(updatedBooking)
-        return mapToBookingDetailDto(savedBooking)
+        return mapToBookingResponseDto(savedBooking)
     }
 
-    /**
-     * Elimina una reserva de la base de datos.
-     *
-     * @param bookingId El ID de la reserva a eliminar.
-     * @return `true` si la reserva fue encontrada y eliminada, `false` si no se encontró.
-     */
     @Transactional
     fun deleteBooking(bookingId: Long): Boolean {
-        println("bookingID =====> $bookingId")
-        val booking = bookingRepository.findByIdOrNull(bookingId)
+        val authentication = SecurityContextHolder.getContext().authentication
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated")
+        val userIdString = authentication.principal.toString()
 
-        return if (booking != null) {
+        val userId = userIdString.toLongOrNull()
+            ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid user ID in context")
+
+        val booking = findBookingByIdOrThrow(bookingId)
+
+        if (booking.user.id != userId) {
+            throw ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "User is not authorized to update this booking."
+            )
+        }
+
+        return run {
             bookingRepository.delete(booking)
             true
-        } else {
-            false
         }
     }
 
     // --- MÉTODOS PRIVADOS HELPER ---
-
-    /**
-     * Método helper (privado) para buscar una [Booking] por ID.
-     * Centraliza la lógica de "buscar o fallar". (Principio DRY)
-     *
-     * @param bookingId ID de la reserva.
-     * @return La [Booking] encontrada.
-     * @throws IllegalArgumentException Si no se encuentra la reserva.
-     */
     private fun findBookingByIdOrThrow(bookingId: Long): Booking {
         return bookingRepository.findById(bookingId)
             .orElseThrow {
@@ -208,41 +212,31 @@ class BookingService(
             }
     }
 
-    /**
-     * Método helper (privado) para generar un código de confirmación único.
-     *
-     * @return Un String de 8 caracteres alfanuméricos en mayúsculas (ej. "A1B2C3D4").
-     */
-    private fun generateConfirmationCode(): String {
-        return UUID.randomUUID().toString()
-            .replace("-", "")
-            .substring(0, 8)
-            .uppercase()
-    }
+    private fun mapToBookingResponseDto(booking: Booking): BookingResponseDto {
+        val userDto = UserDtoForBooking(
+            id = booking.user.id.toString(),
+            email = booking.user.email,
+            phone = booking.user.phone,
+            name = booking.user.name,
+            lastname = booking.user.lastname
+        )
 
-    /**
-     * Método helper (privado) para mapear la entidad [Booking] al DTO [BookingDetailDto].
-     *
-     * @param booking La entidad [Booking] a mapear.
-     * @return El DTO [BookingDetailDto] que espera el frontend.
-     */
-    private fun mapToBookingDetailDto(booking: Booking): BookingDetailDto {
+        val hotel = booking.roomType.hotel
 
-        val roomType = booking.roomType
-        val hotel = roomType.hotel
-
-        return BookingDetailDto(
-            id = booking.id,
-            checkInDate = booking.checkInDate,
-            checkOutDate = booking.checkOutDate,
+        return BookingResponseDto(
+            id = booking.id.toString(),
             passengerCount = booking.passengerCount,
             guestNames = booking.guestNames,
-            totalPrice = booking.totalPrice,
+            checkInDate = booking.checkInDate.toString(),
+            checkOutDate = booking.checkOutDate.toString(),
+            totalPrice = booking.totalPrice.toDouble(),
             status = booking.status.name,
             hotelName = hotel.name,
             hotelCity = hotel.city,
-            hotelImage = hotel.images.firstOrNull() ?: "",
-            roomId = roomType.id
+            hotelImage = hotel.images.firstOrNull(),
+            roomId = booking.roomType.id.toString(),
+            user = userDto
         )
     }
+
 }

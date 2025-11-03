@@ -34,8 +34,6 @@ data class Booking(
     @Column(nullable = false)
     val checkOutDate: LocalDate,
 
-    @Column(nullable = false, unique = true)
-    val confirmationCode: String,
 
     @Column(nullable = false, precision = 10, scale = 2)
     val totalPrice: BigDecimal,

@@ -561,7 +561,6 @@ class DataLoader(
                 checkInDate = LocalDate.of(2025, 11, 10),
                 checkOutDate = LocalDate.of(2025, 11, 15),
                 totalPrice = roomParis1_1.pricePerNight.multiply(BigDecimal(5)),
-                confirmationCode = "CANCEL01",
                 status = BookingStatus.CANCELLED,
                 user = userCreator
             )
@@ -575,7 +574,6 @@ class DataLoader(
                 checkInDate = LocalDate.of(2026, 1, 20),
                 checkOutDate = LocalDate.of(2026, 1, 25),
                 totalPrice = roomRoma1_1.pricePerNight.multiply(BigDecimal(5)),
-                confirmationCode = "PENDING1",
                 status = BookingStatus.PENDING,
                 user = userCreator
             )

@@ -12,27 +12,26 @@ class BookingGraphQLController(
     private val bookingService: BookingService
 ) {
 
-    @QueryMapping
-    fun allBookings(): List<BookingDetailDto> =
-        bookingService.getAllBookings()
+    @MutationMapping
+    fun createBooking(@Argument input: BookingRequestDto): BookingResponseDto {
+        return bookingService.createBooking(input)
+    }
 
     @QueryMapping
-    fun bookingById(@Argument id: Long): BookingDetailDto =
+    fun allBookingsByUserId(): List<BookingResponseDto> =
+        bookingService.getAllBookingsByUser()
+
+    @QueryMapping
+    fun bookingById(@Argument id: Long): BookingResponseDto =
         bookingService.getBookingDetails(id)
 
     @MutationMapping
-    fun createBooking(@Argument input: BookingRequestDto): BookingDetailDto {
-        val created = bookingService.createBooking(input)
-        return bookingService.getBookingDetails(created.id)
-    }
-
-    @MutationMapping
-    fun updateBooking(@Argument id: Long, @Argument input: BookingRequestDto): BookingDetailDto =
+    fun updateBooking(@Argument id: Long, @Argument input: BookingRequestDto): BookingResponseDto =
         bookingService.updateBooking(id, input)
 
 
     @MutationMapping
-    fun updateBookingStatus(@Argument input: UpdateStatusRequestDto): BookingDetailDto =
+    fun updateBookingStatus(@Argument input: UpdateStatusRequestDto): BookingResponseDto =
         bookingService.updateBookingStatus(input.bookingId, input.status)
 
     @MutationMapping

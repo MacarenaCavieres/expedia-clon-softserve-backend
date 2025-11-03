@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface BookingRepository : JpaRepository<Booking, Long>
+interface BookingRepository : JpaRepository<Booking, Long> {
+    fun findBookingsByUserId(userId: Long): List<Booking>
+}

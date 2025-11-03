@@ -21,7 +21,6 @@ type Booking {
     guestNames: String!
     checkInDate: String!
     checkOutDate: String!
-    confirmationCode: String!
     totalPrice: Float!
     status: BookingStatus!
     hotelName: String
@@ -80,6 +79,10 @@ type User {
     bookings: [Booking!]
 }
 
+type TokenGenerated{
+    accessToken: String
+}
+
 input UserInput{
     name:String!
     lastname: String!
@@ -88,9 +91,11 @@ input UserInput{
     password: String!
 }
 
-type TokenPair{
-    accessToken: String!
-    refreshToken: String!
+input UserUpdateInput{
+    name: String!
+    lastname: String!
+    email: String!
+    phone: String!
 }
 
 input PasswordResetInput {
@@ -100,7 +105,7 @@ input PasswordResetInput {
 
 # --- Queries (Consultas) ---
 type Query {
-    allBookings: [Booking!]!
+    allBookingsByUserId: [Booking!]!
     bookingById(id: ID!): Booking
 
     #  hoteles
@@ -113,17 +118,22 @@ type Query {
     hotelDetailsById(
         id: ID!
     ): HotelDetail
+
+    # User
+    getUserInfo: User
 }
 
 # --- Mutations ---
 type Mutation {
+    # Bookings
     createBooking(input: BookingInput!): Booking!
     updateBooking(id: ID!, input: BookingInput!): Booking!
     updateBookingStatus(input: UpdateStatusInput!): Booking!
     deleteBooking(id: ID!): Boolean!
-    #    user
-    registerUser(input:UserInput! ): User!
-    loginUser(email:String,password:String): TokenPair
+    # User
+    registerUser(input: UserInput! ): User!
+    loginUser(email: String, password: String): TokenGenerated!
     forgotPassword(email: String!): Boolean!
     resetPassword(input: PasswordResetInput!): User!
+    updateUserInfo(input: UserUpdateInput): User!
 }

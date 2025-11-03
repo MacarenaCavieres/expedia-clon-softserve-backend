@@ -14,17 +14,17 @@ data class User(
     val id: Long = 0,
 
     @Column(nullable = false)
-    val name: String,
+    var name: String,
 
     @Column(nullable = false)
-    val lastname: String,
+    var lastname: String,
 
     @Column(nullable = false, unique = true)
     @field:Email(message = "Must be a valid email format")
-    val email: String,
+    var email: String,
 
     @Column(nullable = false)
-    val phone: String,
+    var phone: String,
 
     @Column(nullable = false)
     @field:Size(min = 8, message = "The password must be at least 8 characters long")

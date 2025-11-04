@@ -3,7 +3,6 @@ package com.expediaclon.backend.service
 import com.expediaclon.backend.config.HashEncoder
 import com.expediaclon.backend.dto.*
 import com.expediaclon.backend.model.PasswordResetToken
-import com.expediaclon.backend.model.RefreshToken
 import com.expediaclon.backend.model.User
 import com.expediaclon.backend.repository.PasswordResetTokenRepository
 import com.expediaclon.backend.repository.UserRepository

@@ -44,7 +44,7 @@ class MailService(
                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                     <tr>
                         <td align="center" style="padding: 20px 0 30px 0;">
-                            <h1 style="color: #003580;">Expedia Clone</h1>
+                            <h1 style="color: #191e3b;"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Expedia_Logo_2023.svg/1280px-Expedia_Logo_2023.svg.png" alt="Expedia logo" style="width: 200px;"/></h1>
                         </td>
                     </tr>
                 </table>
@@ -63,8 +63,8 @@ class MailService(
 
                             <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 25px 0;">
                                 <tr>
-                                    <td align="center" style="border-radius: 5px;" bgcolor="#007bff">
-                                        <a href="$resetUrl" target="_blank" style="font-size: 16px; font-weight: bold; text-decoration: none; color: #ffffff; padding: 12px 24px; border-radius: 5px; display: inline-block; background-color: #007bff;">
+                                    <td align="center" style="border-radius: 5px;" bgcolor="#1668e3">
+                                        <a href="$resetUrl" target="_blank" style="font-size: 16px; font-weight: bold; text-decoration: none; color: #ffffff; padding: 12px 24px; border-radius: 5px; display: inline-block; background-color: #1668e3;">
                                             Reset Password
                                         </a>
                                     </td>

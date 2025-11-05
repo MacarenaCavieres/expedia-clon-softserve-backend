@@ -1,7 +1,7 @@
 package com.expediaclon.backend.controller
 
 import com.expediaclon.backend.dto.PasswordResetRequest
-import com.expediaclon.backend.dto.TokenGenerated
+import com.expediaclon.backend.dto.LoginResponseDto
 import com.expediaclon.backend.dto.UserRequestDto
 import com.expediaclon.backend.dto.UserRequestUpdateDto
 import com.expediaclon.backend.model.User
@@ -21,7 +21,7 @@ class UserGraphQLController(private val userService: UserService) {
     }
 
     @MutationMapping
-    fun loginUser(@Argument email: String, @Argument password: String): TokenGenerated {
+    fun loginUser(@Argument email: String, @Argument password: String): LoginResponseDto {
         return userService.login(email, password)
     }
 

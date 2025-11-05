@@ -41,7 +41,7 @@ class UserService(
         )
     }
 
-    fun login(email: String, password: String): TokenGenerated {
+    fun login(email: String, password: String): LoginResponseDto {
         val user = userRepository.findByEmail(email) ?: throw BadCredentialsException("Invalid credentials")
 
         if (!hashEncoder.matches(password, user.password)) {
@@ -50,8 +50,15 @@ class UserService(
 
         val newAccessToken = jwtService.generateAccessToken(user.id.toString())
 
-        return TokenGenerated(
-            accessToken = newAccessToken
+        return LoginResponseDto(
+            accessToken = newAccessToken,
+            user = UserDtoForBooking(
+                id = user.id.toString(),
+                name = user.name,
+                lastname = user.lastname,
+                email = user.email,
+                phone = user.phone
+            )
         )
     }
 

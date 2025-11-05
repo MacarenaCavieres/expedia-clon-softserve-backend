@@ -79,8 +79,17 @@ type User {
     bookings: [Booking!]
 }
 
-type TokenGenerated{
+type UserLogin {
+    id: ID!
+    email: String!
+    phone:String!
+    name: String!
+    lastname: String!
+}
+
+type LoginResponse {
     accessToken: String
+    user: UserLogin
 }
 
 input UserInput{
@@ -132,7 +141,7 @@ type Mutation {
     deleteBooking(id: ID!): Boolean!
     # User
     registerUser(input: UserInput! ): User!
-    loginUser(email: String, password: String): TokenGenerated!
+    loginUser(email: String, password: String): LoginResponse!
     forgotPassword(email: String!): Boolean!
     resetPassword(input: PasswordResetInput!): User!
     updateUserInfo(input: UserUpdateInput): User!

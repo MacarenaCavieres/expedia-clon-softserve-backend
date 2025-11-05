@@ -99,8 +99,9 @@ data class UserRequestDto(
     val password: String
 )
 
-data class TokenGenerated(
-    val accessToken:String
+data class LoginResponseDto(
+    val accessToken: String,
+    val user: UserDtoForBooking
 )
 
 data class PasswordResetRequest(

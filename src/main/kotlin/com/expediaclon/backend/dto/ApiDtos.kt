@@ -101,6 +101,7 @@ data class UserRequestDto(
 
 data class LoginResponseDto(
     val accessToken: String,
+    val refreshToken: String,
     val user: UserDtoForBooking
 )
 

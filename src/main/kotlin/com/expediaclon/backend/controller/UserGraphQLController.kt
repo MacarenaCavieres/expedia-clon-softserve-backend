@@ -26,6 +26,11 @@ class UserGraphQLController(private val userService: UserService) {
     }
 
     @MutationMapping
+    fun refreshToken(@Argument refreshToken: String): LoginResponseDto {
+        return userService.refresh(refreshToken)
+    }
+
+    @MutationMapping
     fun forgotPassword(@Argument email: String): Boolean {
         return userService.requestPasswordReset(email)
     }

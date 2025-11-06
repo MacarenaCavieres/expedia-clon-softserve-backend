@@ -3,10 +3,13 @@ package com.expediaclon.backend.service
 import com.expediaclon.backend.config.HashEncoder
 import com.expediaclon.backend.dto.*
 import com.expediaclon.backend.model.PasswordResetToken
+import com.expediaclon.backend.model.RefreshToken
 import com.expediaclon.backend.model.User
 import com.expediaclon.backend.repository.PasswordResetTokenRepository
+import com.expediaclon.backend.repository.RefreshTokenRepository
 import com.expediaclon.backend.repository.UserRepository
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -21,6 +24,7 @@ class UserService(
     private val jwtService: JwtService,
     private val userRepository: UserRepository,
     private val hashEncoder: HashEncoder,
+    private val refreshTokenRepository: RefreshTokenRepository,
     private val passwordResetTokenRepository: PasswordResetTokenRepository,
     private val mailService: MailService
 ) {
@@ -49,9 +53,51 @@ class UserService(
         }
 
         val newAccessToken = jwtService.generateAccessToken(user.id.toString())
+        val newRefreshToken = jwtService.generateRefreshToken(user.id.toString())
+
+        storeRefreshToken(user.id, newRefreshToken)
 
         return LoginResponseDto(
             accessToken = newAccessToken,
+            refreshToken = newRefreshToken,
+            user = UserDtoForBooking(
+                id = user.id.toString(),
+                name = user.name,
+                lastname = user.lastname,
+                email = user.email,
+                phone = user.phone
+            )
+        )
+    }
+
+    @Transactional
+    fun refresh(refreshToken: String): LoginResponseDto {
+        if (!jwtService.validateRefreshToken(refreshToken)) {
+            throw ResponseStatusException(HttpStatusCode.valueOf(401), "Invalid refresh token")
+        }
+
+        val userId = jwtService.getUserIdFromToken(refreshToken)
+        val user = userRepository.findById(userId.toLong()).orElseThrow {
+            ResponseStatusException(HttpStatusCode.valueOf(401), "Invalid refresh token")
+        }
+
+        val hashed = hashToken(refreshToken)
+        refreshTokenRepository.findByUserIdAndHashedToken(user.id, hashed)
+            ?: throw ResponseStatusException(
+                HttpStatusCode.valueOf(401),
+                "Refresh token not recognized (maybe used or expires)"
+            )
+
+        refreshTokenRepository.deleteByUserIdAndHashedToken(user.id, hashed)
+
+        val newAccessToken = jwtService.generateAccessToken(userId)
+        val newRefreshToken = jwtService.generateRefreshToken(userId)
+
+        storeRefreshToken(user.id, newRefreshToken)
+
+        return LoginResponseDto(
+            accessToken = newAccessToken,
+            refreshToken = newRefreshToken,
             user = UserDtoForBooking(
                 id = user.id.toString(),
                 name = user.name,
@@ -145,5 +191,24 @@ class UserService(
         user.phone = input.phone
 
         return userRepository.save(user)
+    }
+
+    private fun storeRefreshToken(userId: Long, rawRefreshToken: String) {
+        val hashed = hashToken(rawRefreshToken)
+        val expiryMs = jwtService.refreshTokenValidityMS
+        val expiresAt = Instant.now().plusMillis(expiryMs)
+        refreshTokenRepository.save(
+            RefreshToken(
+                userId = userId,
+                expiresAt = expiresAt,
+                hashedToken = hashed
+            )
+        )
+    }
+
+    private fun hashToken(token: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val hashBytes = digest.digest(token.encodeToByteArray())
+        return Base64.getEncoder().encodeToString(hashBytes)
     }
 }

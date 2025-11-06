@@ -89,6 +89,7 @@ type UserLogin {
 
 type LoginResponse {
     accessToken: String
+    refreshToken: String
     user: UserLogin
 }
 
@@ -141,7 +142,8 @@ type Mutation {
     deleteBooking(id: ID!): Boolean!
     # User
     registerUser(input: UserInput! ): User!
-    loginUser(email: String, password: String): LoginResponse!
+    loginUser(email: String!, password: String!): LoginResponse!
+    refreshToken(refreshToken: String!): LoginResponse!
     forgotPassword(email: String!): Boolean!
     resetPassword(input: PasswordResetInput!): User!
     updateUserInfo(input: UserUpdateInput): User!

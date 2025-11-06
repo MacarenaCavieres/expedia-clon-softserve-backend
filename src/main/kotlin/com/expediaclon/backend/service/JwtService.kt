@@ -14,7 +14,7 @@ import java.util.Date
 class JwtService(@Value("\${jwt.secret}") private val jwtSecret: String) {
     private val secretKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtSecret))
     private val accessTokenValidityMs = 60L * 60L * 1000L // 60 minutos
-//    val refreshTokenValidityMS = 30L * 24 * 60 * 60 * 1000L // 30 dias
+    val refreshTokenValidityMS = 30L * 24 * 60 * 60 * 1000L // 30 dias
     val resetPasswordTokenValidityMS = 15L * 60L * 1000L // 15 minutos
 
     private fun generateToken(
@@ -30,9 +30,9 @@ class JwtService(@Value("\${jwt.secret}") private val jwtSecret: String) {
         return generateToken(userId, "access", accessTokenValidityMs)
     }
 
-//    fun generateRefreshToken(userId: String): String {
-//        return generateToken(userId, "refresh", refreshTokenValidityMS)
-//    }
+    fun generateRefreshToken(userId: String): String {
+        return generateToken(userId, "refresh", refreshTokenValidityMS)
+    }
 
     fun generateResetPasswordToken(userId: String): String {
         return generateToken(userId, "reset", resetPasswordTokenValidityMS)

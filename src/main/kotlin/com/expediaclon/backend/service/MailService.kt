@@ -23,7 +23,7 @@ class MailService(
         helper.setTo(toEmail)
         helper.setSubject("Expedia Clone - Password Reset")
 
-        val resetUrl = "http://localhost:5173/reset-password?token=$token"
+        val resetUrl = "http://localhost:5173/auth/reset-password?token=$token"
 
         val htmlContent = buildResetPasswordEmailHtml(resetUrl)
 

@@ -14,6 +14,7 @@ import java.util.Date
 class JwtService(@Value("\${jwt.secret}") private val jwtSecret: String) {
     private val secretKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtSecret))
     private val accessTokenValidityMs = 60L * 60L * 1000L // 60 minutos
+//    private val accessTokenValidityMs = 60L * 1000L // 1 minuto
     val refreshTokenValidityMS = 30L * 24 * 60 * 60 * 1000L // 30 dias
     val resetPasswordTokenValidityMS = 15L * 60L * 1000L // 15 minutos
 

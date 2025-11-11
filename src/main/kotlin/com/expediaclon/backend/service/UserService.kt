@@ -189,6 +189,7 @@ class UserService(
         user.lastname = input.lastname.trim()
         user.email = input.email.trim()
         user.phone = input.phone
+        user.updatedAt = Instant.now()
 
         return userRepository.save(user)
     }

@@ -15,7 +15,7 @@ interface HotelRepository : JpaRepository<Hotel, Long> {
     @Query(
         """
         SELECT DISTINCT h FROM Hotel h JOIN h.rooms rt
-        WHERE h.city = :city AND rt.capacity >= :minCapacity
+        WHERE LOWER(h.city) = LOWER(:city) AND rt.capacity >= :minCapacity
     """
     )
     fun findHotelsInCityWithSufficientCapacity(

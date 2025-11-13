@@ -23,7 +23,7 @@ class MailService(
         helper.setTo(toEmail)
         helper.setSubject("Expedia Clone - Password Reset")
 
-        val resetUrl = "http://localhost:5173/auth/reset-password?token=$token"
+        val resetUrl = "https://expedia-clon-softserve-frontend.vercel.app/auth/reset-password?token=$token"
 
         val htmlContent = buildResetPasswordEmailHtml(resetUrl)
 

@@ -8,8 +8,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 class CorsConfig : WebMvcConfigurer {
     override fun addCorsMappings(registry: CorsRegistry) {
         registry.addMapping("/**") // aplica a todas las rutas
-            .allowedOrigins("https://expedia-clon-softserve-frontend.vercel.app") // el origen de tu frontend
-            .allowedMethods("GET", "POST","PATCH", "PUT", "DELETE", "OPTIONS")
+            .allowedOrigins(
+                "https://expedia-clon-softserve-frontend.vercel.app",
+                "http://localhost:5173/"
+            ) // el origen de tu frontend
+            .allowedMethods("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS")
             .allowedHeaders("*")
             .allowCredentials(true)
     }

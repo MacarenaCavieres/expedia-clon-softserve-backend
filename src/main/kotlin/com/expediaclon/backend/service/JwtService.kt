@@ -1,12 +1,12 @@
 package com.expediaclon.backend.service
 
+import com.expediaclon.backend.exception.InvalidCredentialsException
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Service
-import org.springframework.web.server.ResponseStatusException
 import java.util.Base64
 import java.util.Date
 
@@ -42,7 +42,6 @@ class JwtService(@Value("\${jwt.secret}") private val jwtSecret: String) {
         val claims = parseAllClaims(token) ?: return false
         val tokenType = claims["type"] as? String ?: return false
         return tokenType == "access"
-
     }
 
     fun validateRefreshToken(token: String): Boolean {
@@ -59,8 +58,7 @@ class JwtService(@Value("\${jwt.secret}") private val jwtSecret: String) {
 
     fun getUserIdFromToken(token: String): String {
         val claims =
-            parseAllClaims(token) ?: throw ResponseStatusException(HttpStatusCode.valueOf(401), "Invalid token")
-
+            parseAllClaims(token) ?: throw InvalidCredentialsException("Invalid token")
         return claims.subject
     }
 

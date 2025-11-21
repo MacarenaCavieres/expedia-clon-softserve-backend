@@ -2,19 +2,16 @@ package com.expediaclon.backend.service
 
 import com.expediaclon.backend.config.HashEncoder
 import com.expediaclon.backend.dto.*
+import com.expediaclon.backend.exception.*
 import com.expediaclon.backend.model.PasswordResetToken
 import com.expediaclon.backend.model.RefreshToken
 import com.expediaclon.backend.model.User
 import com.expediaclon.backend.repository.PasswordResetTokenRepository
 import com.expediaclon.backend.repository.RefreshTokenRepository
 import com.expediaclon.backend.repository.UserRepository
-import org.springframework.http.HttpStatus
-import org.springframework.http.HttpStatusCode
-import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.server.ResponseStatusException
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.*
@@ -32,7 +29,7 @@ class UserService(
         val user = userRepository.findByEmail(input.email.trim())
 
         if (user != null) {
-            throw ResponseStatusException(HttpStatus.CONFLICT, "A user with that email already exists")
+            throw UserAlreadyExistsException("A user with that email already exists")
         }
         return userRepository.save(
             User(
@@ -46,10 +43,10 @@ class UserService(
     }
 
     fun login(email: String, password: String): LoginResponseDto {
-        val user = userRepository.findByEmail(email) ?: throw BadCredentialsException("Invalid credentials")
+        val user = userRepository.findByEmail(email) ?: throw InvalidCredentialsException("Invalid credentials")
 
         if (!hashEncoder.matches(password, user.password)) {
-            throw BadCredentialsException("Invalid credentials")
+            throw InvalidCredentialsException("Invalid credentials")
         }
 
         val newAccessToken = jwtService.generateAccessToken(user.id.toString())
@@ -73,18 +70,17 @@ class UserService(
     @Transactional
     fun refresh(refreshToken: String): LoginResponseDto {
         if (!jwtService.validateRefreshToken(refreshToken)) {
-            throw ResponseStatusException(HttpStatusCode.valueOf(401), "Invalid refresh token")
+            throw InvalidCredentialsException("Invalid refresh token")
         }
 
         val userId = jwtService.getUserIdFromToken(refreshToken)
         val user = userRepository.findById(userId.toLong()).orElseThrow {
-            ResponseStatusException(HttpStatusCode.valueOf(401), "Invalid refresh token")
+            InvalidCredentialsException("Invalid refresh token")
         }
 
         val hashed = hashToken(refreshToken)
         refreshTokenRepository.findByUserIdAndHashedToken(user.id, hashed)
-            ?: throw ResponseStatusException(
-                HttpStatusCode.valueOf(401),
+            ?: throw InvalidCredentialsException(
                 "Refresh token not recognized (maybe used or expires)"
             )
 
@@ -111,7 +107,7 @@ class UserService(
     @Transactional
     fun requestPasswordReset(email: String): Boolean {
         val user = userRepository.findByEmail(email)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
+            ?: throw UserNotFoundException("User not found")
 
         passwordResetTokenRepository.deleteByUserId(user.id)
 
@@ -134,15 +130,15 @@ class UserService(
     @Transactional
     fun resetPassword(request: PasswordResetRequest): User {
         val resetToken = passwordResetTokenRepository.findByToken(request.token).orElseThrow {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired token")
+            throw InvalidCredentialsException("Invalid or expired token")
         }
 
         if (resetToken.expiresAt.isBefore(Instant.now()) || resetToken.isUsed) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Token has expired or has already been used")
+            throw InvalidCredentialsException("Token has expired or has already been used")
         }
 
         val user = userRepository.findById(resetToken.userId).orElseThrow {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "User associated with token not found")
+            throw UserNotFoundException("User associated with token not found")
         }
 
         user.password = hashEncoder.encode(request.newPassword)
@@ -154,35 +150,13 @@ class UserService(
         return user
     }
 
-    fun getUserById(): User {
-        val authentication = SecurityContextHolder.getContext().authentication
-            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated")
-        val userIdString = authentication.principal.toString()
-
-        val userId = userIdString.toLongOrNull()
-            ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid user ID in context")
-
-        return userRepository.findById(userId).orElseThrow {
-            ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
-        }
-    }
-
     fun updateUser(input: UserRequestUpdateDto): User {
-        val authentication = SecurityContextHolder.getContext().authentication
-            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated")
-        val userIdString = authentication.principal.toString()
-
-        val userId = userIdString.toLongOrNull()
-            ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid user ID in context")
-
-        val user = userRepository.findById(userId).orElseThrow {
-            ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
-        }
+        val user = getUserById()
 
         val userByEmail = userRepository.findByEmail(input.email.trim())
 
         if (userByEmail != null && userByEmail.id != user.id) {
-            throw ResponseStatusException(HttpStatus.CONFLICT, "A user with that email already exists")
+            throw InvalidCredentialsException("A user with that email already exists")
         }
 
         user.name = input.name.trim()
@@ -211,5 +185,18 @@ class UserService(
         val digest = MessageDigest.getInstance("SHA-256")
         val hashBytes = digest.digest(token.encodeToByteArray())
         return Base64.getEncoder().encodeToString(hashBytes)
+    }
+
+    fun getUserById(): User {
+        val authentication = SecurityContextHolder.getContext().authentication
+            ?: throw NotAuthenticatedException("User not authenticated")
+        val userIdString = authentication.principal.toString()
+
+        val userId = userIdString.toLongOrNull()
+            ?: throw InvalidCredentialsException("Invalid token")
+
+        return userRepository.findById(userId).orElseThrow {
+            UserNotFoundException("User not found")
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.expediaclon.backend.service
 import com.expediaclon.backend.dto.HotelCardDto
 import com.expediaclon.backend.dto.HotelDetailDto
 import com.expediaclon.backend.dto.RoomTypeDetailDto
+import com.expediaclon.backend.exception.BadRequestMessageException
 import com.expediaclon.backend.model.Hotel
 import com.expediaclon.backend.model.RoomType
 import com.expediaclon.backend.repository.HotelRepository
@@ -10,7 +11,7 @@ import com.expediaclon.backend.repository.RoomTypeRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal // Importa BigDecimal
+import java.math.BigDecimal
 
 /**
  * @property hotelRepository Repositorio para acceder a los datos de [Hotel].
@@ -59,7 +60,7 @@ class HotelService(
     fun getHotelDetails(hotelId: Long): HotelDetailDto { // Devuelve no nullable o lanza excepción
 
         val hotel = hotelRepository.findByIdOrNull(hotelId)
-            ?: throw IllegalArgumentException("Hotel with ID $hotelId not found.")
+            ?: throw BadRequestMessageException("Hotel with ID $hotelId not found.")
         val roomTypes = roomTypeRepository.findByHotelId(hotelId)
         val roomDtos = roomTypes.map { mapToRoomDetailDto(it) }
 

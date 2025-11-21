@@ -2,6 +2,7 @@ package com.expediaclon.backend.controller
 
 import com.expediaclon.backend.dto.*
 import com.expediaclon.backend.service.BookingService
+import jakarta.validation.Valid
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -13,7 +14,7 @@ class BookingGraphQLController(
 ) {
 
     @MutationMapping
-    fun createBooking(@Argument input: BookingRequestDto): BookingResponseDto {
+    fun createBooking(@Valid @Argument input: BookingRequestDto): BookingResponseDto {
         return bookingService.createBooking(input)
     }
 
@@ -26,12 +27,12 @@ class BookingGraphQLController(
         bookingService.getBookingDetails(id)
 
     @MutationMapping
-    fun updateBooking(@Argument id: Long, @Argument input: BookingRequestDto): BookingResponseDto =
+    fun updateBooking(@Argument id: Long, @Valid @Argument input: BookingRequestDto): BookingResponseDto =
         bookingService.updateBooking(id, input)
 
 
     @MutationMapping
-    fun updateBookingStatus(@Argument input: UpdateStatusRequestDto): BookingResponseDto =
+    fun updateBookingStatus(@Valid @Argument input: UpdateStatusRequestDto): BookingResponseDto =
         bookingService.updateBookingStatus(input.bookingId, input.status)
 
     @MutationMapping

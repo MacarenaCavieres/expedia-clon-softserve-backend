@@ -116,3 +116,6 @@ data class UserRequestUpdateDto(
     val email: String,
     val phone: String
 )
+
+// payment
+data class CreatePaymentRequest(val amount: Long, val currency: String = "usd")

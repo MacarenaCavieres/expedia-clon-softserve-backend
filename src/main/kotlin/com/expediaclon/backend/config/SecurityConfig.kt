@@ -19,8 +19,20 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
         return httpSecurity.csrf { csrf -> csrf.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers("/graphql", "/graphql/**", "/graphiql").permitAll()
-                    .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD).permitAll().anyRequest()
+                auth
+                    .requestMatchers(
+                        "/graphql",
+                        "/graphql/**",
+                        "/graphiql",
+                        "/api/payments/**"   // <- Stripe público
+                    ).permitAll()
+
+                    .dispatcherTypeMatchers(
+                        DispatcherType.ERROR,
+                        DispatcherType.FORWARD
+                    ).permitAll()
+
+                    .anyRequest()
                     .authenticated()
             }
             .exceptionHandling { configurer ->

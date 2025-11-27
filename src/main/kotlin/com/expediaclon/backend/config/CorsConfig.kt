@@ -10,7 +10,7 @@ class CorsConfig : WebMvcConfigurer {
         registry.addMapping("/**") // aplica a todas las rutas
             .allowedOrigins(
                 "https://expedia-clon-softserve-frontend.vercel.app",
-                "http://localhost:5173/"
+                "http://localhost:5173"
             ) // el origen de tu frontend
             .allowedMethods("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS")
             .allowedHeaders("*")

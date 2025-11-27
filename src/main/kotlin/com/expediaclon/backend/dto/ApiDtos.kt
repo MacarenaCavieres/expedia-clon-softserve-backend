@@ -118,4 +118,6 @@ data class UserRequestUpdateDto(
 )
 
 // payment
-data class CreatePaymentRequest(val amount: Long, val currency: String = "usd")
+data class CreatePaymentRequest(
+    val bookingId: String
+)

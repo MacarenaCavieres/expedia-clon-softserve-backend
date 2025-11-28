@@ -1,10 +1,12 @@
 package com.expediaclon.backend.service
 
+import com.expediaclon.backend.dto.PaymentIntentResponse
 import com.expediaclon.backend.model.enums.BookingStatus
 import com.expediaclon.backend.repository.BookingRepository
 import com.stripe.model.PaymentIntent
 import com.stripe.param.PaymentIntentCreateParams
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 
 @Service
 class PaymentService(
@@ -12,27 +14,30 @@ class PaymentService(
     private val bookingService: BookingService
 ) {
 
-    fun createPaymentIntent(bookingId: String): String {
+    fun createPaymentIntent(bookingId: String): PaymentIntentResponse {
 
         val booking = bookingRepository.findById(bookingId.toLong())
             .orElseThrow { RuntimeException("Reservation not found") }
 
         if (booking.status != BookingStatus.PENDING) {
-            throw RuntimeException("Only pending reservations can be paid for")
+            throw RuntimeException("Only pending reservations can be paid")
         }
 
-        val amount = booking.totalPrice  // USD → centavos
+        val amount = booking.totalPrice.multiply(BigDecimal(100)).toLong()
 
         val params = PaymentIntentCreateParams.builder()
-            .setAmount(amount.toLong())
+            .setAmount(amount)
             .setCurrency("usd")
+            .addPaymentMethodType("card")
             .putMetadata("bookingId", booking.id.toString())
             .build()
 
         val paymentIntent = PaymentIntent.create(params)
 
-        bookingService.updateBookingStatus(bookingId.toLong(), BookingStatus.CONFIRMED)
-
-        return paymentIntent.clientSecret
+        return PaymentIntentResponse(
+            clientSecret = paymentIntent.clientSecret,
+            amount = amount,
+            currency = "usd"
+        )
     }
 }

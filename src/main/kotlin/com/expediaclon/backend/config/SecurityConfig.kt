@@ -24,7 +24,8 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
                         "/graphql",
                         "/graphql/**",
                         "/graphiql",
-                        "/api/payments/**"   // <- Stripe público
+                        "/api/payments/**",
+                        "/api/webhooks/**"
                     ).permitAll()
 
                     .dispatcherTypeMatchers(

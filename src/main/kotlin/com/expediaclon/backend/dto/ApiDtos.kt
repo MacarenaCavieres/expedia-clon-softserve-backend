@@ -121,3 +121,9 @@ data class UserRequestUpdateDto(
 data class CreatePaymentRequest(
     val bookingId: String
 )
+
+data class PaymentIntentResponse(
+    val clientSecret: String,
+    val amount: Long,
+    val currency: String
+)

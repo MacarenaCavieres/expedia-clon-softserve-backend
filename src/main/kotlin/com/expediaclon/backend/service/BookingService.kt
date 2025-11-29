@@ -153,6 +153,14 @@ class BookingService(
         }
     }
 
+    @Transactional
+    fun updateBookingStatusFromWebhook(bookingId: Long, newStatus: BookingStatus) {
+        val booking = bookingRepository.findById(bookingId)
+            .orElseThrow { RuntimeException("Booking $bookingId not found (webhook)") }
+
+        bookingRepository.save(booking.copy(status = newStatus))
+    }
+
     private fun findBookingByIdOrThrow(bookingId: Long): Booking {
         return bookingRepository.findById(bookingId)
             .orElseThrow {

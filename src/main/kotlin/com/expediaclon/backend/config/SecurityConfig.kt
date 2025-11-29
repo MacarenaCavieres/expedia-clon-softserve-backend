@@ -25,7 +25,7 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
                         "/graphql/**",
                         "/graphiql",
                         "/api/payments/**",
-                        "/api/webhooks/**"
+                        "/api/stripe/webhook"
                     ).permitAll()
 
                     .dispatcherTypeMatchers(

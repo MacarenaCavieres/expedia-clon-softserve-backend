@@ -11,6 +11,7 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
+@EnableWebSecurity
 @Configuration
 class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
 

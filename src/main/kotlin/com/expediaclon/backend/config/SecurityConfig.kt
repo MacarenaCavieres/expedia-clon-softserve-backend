@@ -21,6 +21,7 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers(
+                        "/api/stripe/**",
                         "/graphql",
                         "/graphql/**",
                         "/graphiql",

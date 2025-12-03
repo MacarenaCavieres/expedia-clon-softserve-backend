@@ -17,6 +17,13 @@ class JwtAuthFilter
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
+        val path = request.requestURI
+
+        if (path.startsWith("/api/stripe/webhook")) {
+            filterChain.doFilter(request, response)
+            return
+        }
+
         val authHeader = request.getHeader("Authorization")
         if (authHeader != null && authHeader.startsWith("Bearer")) {
             if (jwtService.validateAccessToken(authHeader)) {

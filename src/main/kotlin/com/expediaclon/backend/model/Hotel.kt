@@ -1,5 +1,6 @@
 package com.expediaclon.backend.model
 
+import com.expediaclon.backend.config.FloatListToVectorConverter
 import jakarta.persistence.*
 
 @Entity
@@ -34,5 +35,8 @@ data class Hotel(
     val comment: String,
 
     @OneToMany(mappedBy = "hotel", fetch = FetchType.LAZY)
-    val rooms: List<RoomType> = emptyList()
+    val rooms: List<RoomType> = emptyList(),
+
+    @Column(columnDefinition = "vector(1536)", insertable = false, updatable = false)
+    var embedding: Any? = null
 )

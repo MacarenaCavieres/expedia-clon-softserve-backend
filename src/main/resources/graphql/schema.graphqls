@@ -131,6 +131,9 @@ type Query {
 
     # User
     getUserInfo: User
+
+    # AI
+    semanticSearch(query: String!, limit: Int): [HotelCard!]!
 }
 
 # --- Mutations ---

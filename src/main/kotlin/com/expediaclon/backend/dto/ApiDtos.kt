@@ -127,3 +127,12 @@ data class PaymentIntentResponse(
     val amount: Long,
     val currency: String
 )
+
+// AI
+data class EmbeddingResponse(
+    val embedding: Embedding
+)
+
+data class Embedding(
+    val values: List<Float>
+)

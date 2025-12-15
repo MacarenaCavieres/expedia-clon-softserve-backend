@@ -1,6 +1,6 @@
 package com.expediaclon.backend.config
 
-import java.util.UUID
+import com.expediaclon.backend.ai.LocalEmbeddingService
 import com.expediaclon.backend.model.Booking
 import com.expediaclon.backend.model.Hotel
 import com.expediaclon.backend.model.RoomType
@@ -11,7 +11,10 @@ import com.expediaclon.backend.repository.HotelRepository
 import com.expediaclon.backend.repository.RoomTypeRepository
 import com.expediaclon.backend.repository.UserRepository
 import org.springframework.boot.CommandLineRunner
+import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -20,18 +23,19 @@ class DataLoader(
     private val hotelRepository: HotelRepository,
     private val roomTypeRepository: RoomTypeRepository,
     private val bookingRepository: BookingRepository,
-    private val userRepository: UserRepository
-) : CommandLineRunner {
+    private val userRepository: UserRepository,
+    private val localEmbeddingService: LocalEmbeddingService
+) {
 
-    override fun run(vararg args: String?) {
-        if (hotelRepository.count() == 0L) {
-            println("Loading sample data...")
-            loadData()
-            println("Sample data loaded successfully.")
+    @EventListener(ApplicationReadyEvent::class)
+    fun loadData() {
+        if (hotelRepository.count() > 0) {
+            println("Data already exists, skipping DataLoader")
+            return
         }
-    }
 
-    private fun loadData() {
+        println("Loading sample data...")
+
         // --- Hoteles y Habitaciones para París ---
         val hotelParis1 = hotelRepository.save(
             Hotel(
@@ -1777,5 +1781,25 @@ class DataLoader(
                 user = userCreator
             )
         )
+        hotelRepository.flush()
+        generateEmbeddingsForAllHotels()
+    }
+
+    private fun generateEmbeddingsForAllHotels() {
+
+        val hotels = hotelRepository.findAll()
+
+        hotels.forEach { hotel ->
+            val text = localEmbeddingService.buildHotelEmbeddingText(hotel)
+            val embedding = localEmbeddingService.createEmbedding(text)
+
+            val vectorString = embedding.joinToString(
+                prefix = "[",
+                postfix = "]",
+                separator = ","
+            )
+
+            hotelRepository.updateEmbedding(hotel.id, vectorString)
+        }
     }
 }

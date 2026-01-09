@@ -31,7 +31,8 @@ import java.util.UUID
 class BookingService(
     private val bookingRepository: BookingRepository,
     private val roomTypeRepository: RoomTypeRepository,
-    private val userService: UserService
+    private val userService: UserService,
+    private val mailService: MailService
 ) {
 
     @Transactional
@@ -76,6 +77,7 @@ class BookingService(
                 BadRequestMessageException("Booking created but could not be retrieved.")
             }
 
+        mailService.sendCreationBookingEmail(user.email, bookingEntity)
         return mapToBookingResponseDto(bookingEntity)
     }
 

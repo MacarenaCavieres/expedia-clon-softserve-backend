@@ -1,5 +1,6 @@
 package com.expediaclon.backend.service
 
+import com.expediaclon.backend.model.Booking
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
@@ -10,15 +11,14 @@ class MailService(
     private val mailSender: JavaMailSender
 ) {
     /**
-     * Envía el correo electrónico de restablecimiento de contraseña en formato HTML.
-     * @param toEmail La dirección de correo del destinatario.
-     * @param token El token generado para el restablecimiento de contraseña.
+     * @param toEmail
+     * @param token
      */
     fun sendPasswordResetEmail(toEmail: String, token: String) {
         val message: MimeMessage = mailSender.createMimeMessage()
         val helper = MimeMessageHelper(message, "utf-8")
 
-        val defaultFromEmail = "noreply@expediaclone.com"
+        val defaultFromEmail = "expediagrupodos@gmail.com"
         helper.setFrom(defaultFromEmail, "Expedia Clone Team")
         helper.setTo(toEmail)
         helper.setSubject("Expedia Clone - Password Reset")
@@ -41,15 +41,9 @@ class MailService(
         return """
             <html>
             <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
-                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
-                    <tr>
-                        <td align="center" style="padding: 20px 0 30px 0;">
-                            <h1 style="color: #191e3b;"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Expedia_Logo_2023.svg/1280px-Expedia_Logo_2023.svg.png" alt="Expedia logo" style="width: 200px;"/></h1>
-                        </td>
-                    </tr>
-                </table>
-
-                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin: auto;">
+                <br/>
+                <br/>
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin: auto">
                     <tr>
                         <td style="padding: 40px;">
                             <h2 style="color: #333333;">Password Reset Requested</h2>
@@ -85,7 +79,89 @@ class MailService(
                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                     <tr>
                         <td align="center" style="padding: 20px 0; font-size: 12px; color: #aaaaaa;">
-                            &copy; ${java.time.Year.now().value} Expedia Clone. Todos los derechos reservados.
+                            &copy; ${java.time.Year.now().value} Expedia Clone. All rights reserved.
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+        """.trimIndent()
+    }
+
+    fun sendCreationBookingEmail(toEmail: String, booking: Booking) {
+        val message: MimeMessage = mailSender.createMimeMessage()
+        val helper = MimeMessageHelper(message, "utf-8")
+
+        val defaultFromEmail = "expediagrupodos@gmail.com"
+        helper.setFrom(defaultFromEmail, "Expedia Clone Team")
+        helper.setTo(toEmail)
+        helper.setSubject("Expedia Clone - Booking Confirmation #${booking.id}")
+
+        val urlTrips = "https://expedia-clon-softserve-frontend.vercel.app/my-trips"
+        val htmlContent = buildCreationBookingEmailHtml(urlTrips, booking)
+        helper.setText(htmlContent, true)
+
+        try {
+            mailSender.send(message)
+        } catch (e: Exception) {
+            println("ERROR al enviar email de reserva a $toEmail: ${e.message}")
+        }
+    }
+
+    private fun buildCreationBookingEmailHtml(urlTrips: String, booking: Booking): String {
+        val hotelName = booking.roomType.hotel.name
+        val checkIn = booking.checkInDate
+        val checkOut = booking.checkOutDate
+        val totalPrice = booking.totalPrice
+        val guests = booking.guestNames
+        return """
+            <html>
+            <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
+                <br/><br/>
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin: auto">
+                    <tr>
+                        <td style="padding: 40px;">
+                            <h2 style="color: #1668e3; margin-bottom: 20px;">You made a reservation!</h2>
+                            <p style="color: #333333; font-size: 16px;">Hi <strong>${booking.user.name}</strong>,</p>
+                            <p style="color: #666666; line-height: 1.6;">
+                                Thanks for booking with us. Your reservation at <strong>$hotelName</strong> is all set.
+                            </p>
+                            
+                            <div style="background-color: #f9f9f9; border-radius: 8px; padding: 20px; margin: 25px 0; border: 1px solid #eeeeee;">
+                                <h3 style="margin-top: 0; color: #333333; font-size: 18px;">Reservation Details</h3>
+                                <p style="margin: 5px 0; color: #555555;"><strong>Hotel:</strong> $hotelName</p>
+                                <p style="margin: 5px 0; color: #555555;"><strong>Check-in:</strong> $checkIn</p>
+                                <p style="margin: 5px 0; color: #555555;"><strong>Check-out:</strong> $checkOut</p>
+                                <p style="margin: 5px 0; color: #555555;"><strong>Guests:</strong> $guests</p>
+                                <hr style="border: 0; border-top: 1px solid #dddddd; margin: 15px 0;">
+                                <p style="margin: 5px 0; color: #333333; font-size: 18px;"><strong>Total Price:</strong> $$totalPrice</p>
+                            </div>
+
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 25px 0;">
+                                <tr>
+                                    <td align="center" style="border-radius: 5px;" bgcolor="#1668e3">
+                                        <a href="$urlTrips" target="_blank" style="font-size: 16px; font-weight: bold; text-decoration: none; color: #ffffff; padding: 12px 24px; border-radius: 5px; display: inline-block; background-color: #1668e3;">
+                                            Manage My Trips
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="color: #666666; line-height: 1.6;">
+                                If you need to make changes or cancel your reservation, please do so through our website.
+                            </p>
+                            <p style="color: #666666; line-height: 1.6;">
+                                Enjoy your stay!<br>
+                                <strong>The Expedia Clone Team</strong>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                    <tr>
+                        <td align="center" style="padding: 20px 0; font-size: 12px; color: #aaaaaa;">
+                            &copy; ${java.time.Year.now().value} Expedia Clone. All rights reserved.
                         </td>
                     </tr>
                 </table>

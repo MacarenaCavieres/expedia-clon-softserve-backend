@@ -23,7 +23,7 @@ class MailService(
         helper.setTo(toEmail)
         helper.setSubject("Expedia Clone - Password Reset")
 
-        val resetUrl = "https://expedia-clon-softserve-frontend.vercel.app/auth/reset-password?token=$token"
+        val resetUrl = "https://expedia-clone-frontend.netlify.app/auth/reset-password?token=$token"
 
         val htmlContent = buildResetPasswordEmailHtml(resetUrl)
 
@@ -97,7 +97,7 @@ class MailService(
         helper.setTo(toEmail)
         helper.setSubject("Expedia Clone - Booking Confirmation #${booking.id}")
 
-        val urlTrips = "https://expedia-clon-softserve-frontend.vercel.app/my-trips"
+        val urlTrips = "https://expedia-clone-frontend.netlify.app/my-trips"
         val htmlContent = buildCreationBookingEmailHtml(urlTrips, booking)
         helper.setText(htmlContent, true)
 

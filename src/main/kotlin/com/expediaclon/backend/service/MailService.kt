@@ -1,41 +1,69 @@
 package com.expediaclon.backend.service
 
 import com.expediaclon.backend.model.Booking
-import org.springframework.mail.javamail.JavaMailSender
-import org.springframework.mail.javamail.MimeMessageHelper
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import jakarta.mail.internet.MimeMessage
 
 @Service
 class MailService(
-    private val mailSender: JavaMailSender
+    @Value("\${resend.api.key}") private val apiKey: String,
+    @Value("\${resend.from}") private val from: String,
+    @Value("\${frontend.url}") private val frontendUrl: String
 ) {
-    /**
-     * @param toEmail
-     * @param token
-     */
+    private val client = OkHttpClient()
+
     fun sendPasswordResetEmail(toEmail: String, token: String) {
-        val message: MimeMessage = mailSender.createMimeMessage()
-        val helper = MimeMessageHelper(message, "utf-8")
-
-        val defaultFromEmail = "expediagrupodos@gmail.com"
-        helper.setFrom(defaultFromEmail, "Expedia Clone Team")
-        helper.setTo(toEmail)
-        helper.setSubject("Expedia Clone - Password Reset")
-
-        val resetUrl = "https://expedia-clone-frontend.netlify.app/auth/reset-password?token=$token"
-
+        val resetUrl = "$frontendUrl/auth/reset-password?token=$token"
         val htmlContent = buildResetPasswordEmailHtml(resetUrl)
 
-        helper.setText(htmlContent, true)
+        sendEmail(
+            to = toEmail,
+            subject = "Expedia Clone - Password Reset",
+            html = htmlContent
+        )
+    }
 
-        try {
-            mailSender.send(message)
-        } catch (e: Exception) {
-            println("ERROR al enviar email a $toEmail: ${e.message}")
+    fun sendCreationBookingEmail(toEmail: String, booking: Booking) {
+        val urlTrips = "$frontendUrl/my-trips"
+        val htmlContent = buildCreationBookingEmailHtml(urlTrips, booking)
+
+        sendEmail(
+            to = toEmail,
+            subject = "Expedia Clone - Booking Confirmation #${booking.id}",
+            html = htmlContent
+        )
+    }
+
+    private fun sendEmail(to: String, subject: String, html: String) {
+        val json = """
+        {
+          "from": "$from",
+          "to": ["$to"],
+          "subject": "$subject",
+          "html": ${jsonEscape(html)}
+        }
+        """.trimIndent()
+
+        val request = Request.Builder()
+            .url("https://api.resend.com/emails")
+            .addHeader("Authorization", "Bearer $apiKey")
+            .addHeader("Content-Type", "application/json")
+            .post(json.toRequestBody("application/json".toMediaType()))
+            .build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+                throw RuntimeException("Error sending email via Resend: ${response.body?.string()}")
+            }
         }
     }
 
+    private fun jsonEscape(html: String): String =
+        "\"" + html.replace("\"", "\\\"").replace("\n", "") + "\""
 
     private fun buildResetPasswordEmailHtml(resetUrl: String): String {
         return """
@@ -86,26 +114,6 @@ class MailService(
             </body>
             </html>
         """.trimIndent()
-    }
-
-    fun sendCreationBookingEmail(toEmail: String, booking: Booking) {
-        val message: MimeMessage = mailSender.createMimeMessage()
-        val helper = MimeMessageHelper(message, "utf-8")
-
-        val defaultFromEmail = "expediagrupodos@gmail.com"
-        helper.setFrom(defaultFromEmail, "Expedia Clone Team")
-        helper.setTo(toEmail)
-        helper.setSubject("Expedia Clone - Booking Confirmation #${booking.id}")
-
-        val urlTrips = "https://expedia-clone-frontend.netlify.app/my-trips"
-        val htmlContent = buildCreationBookingEmailHtml(urlTrips, booking)
-        helper.setText(htmlContent, true)
-
-        try {
-            mailSender.send(message)
-        } catch (e: Exception) {
-            println("ERROR al enviar email de reserva a $toEmail: ${e.message}")
-        }
     }
 
     private fun buildCreationBookingEmailHtml(urlTrips: String, booking: Booking): String {

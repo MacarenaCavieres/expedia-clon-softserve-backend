@@ -7,6 +7,8 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 
 @Service
 class MailService(
@@ -38,33 +40,34 @@ class MailService(
         )
     }
 
+    private val gson = Gson()
+
     private fun sendEmail(to: String, subject: String, html: String) {
-        val json = """
-        {
-          "from": "$from",
-          "to": ["$to"],
-          "subject": "$subject",
-          "html": ${jsonEscape(html)}
+        val payload = JsonObject().apply {
+            addProperty("from", from)
+            add("to", gson.toJsonTree(listOf(to)))
+            addProperty("subject", subject)
+            addProperty("html", html)
         }
-        """.trimIndent()
 
         val request = Request.Builder()
             .url("https://api.resend.com/emails")
             .addHeader("Authorization", "Bearer $apiKey")
             .addHeader("Content-Type", "application/json")
-            .post(json.toRequestBody("application/json".toMediaType()))
+            .post(
+                gson.toJson(payload)
+                    .toRequestBody("application/json".toMediaType())
+            )
             .build()
 
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
-                throw RuntimeException("Error sending email via Resend: ${response.body?.string()}")
+                throw RuntimeException(
+                    "Resend error ${response.code}: ${response.body?.string()}"
+                )
             }
         }
     }
-
-    private fun jsonEscape(html: String): String =
-        "\"" + html.replace("\"", "\\\"").replace("\n", "") + "\""
-
     private fun buildResetPasswordEmailHtml(resetUrl: String): String {
         return """
             <html>

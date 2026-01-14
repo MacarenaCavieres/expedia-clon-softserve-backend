@@ -9,7 +9,7 @@ class CorsConfig : WebMvcConfigurer {
     override fun addCorsMappings(registry: CorsRegistry) {
         registry.addMapping("/**") // aplica a todas las rutas
             .allowedOrigins(
-                "https://expedia-clon-softserve-frontend.vercel.app",
+                "https://expedia-clone-frontend.netlify.app",
                 "http://localhost:5173"
             ) // el origen de tu frontend
             .allowedMethods("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS")
